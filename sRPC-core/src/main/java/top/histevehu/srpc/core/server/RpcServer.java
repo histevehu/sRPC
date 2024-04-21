@@ -34,7 +34,7 @@ public class RpcServer {
             logger.info("sRPC服务端启动成功，端口：{}", port);
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
-                logger.info("客户端连接成功，IP：{}", socket.getInetAddress());
+                logger.info("客户端连接成功，IP：{}，Port：{}", socket.getInetAddress(), socket.getPort());
                 threadPool.execute(new WorkerThread(socket, service));
             }
         } catch (IOException e) {
