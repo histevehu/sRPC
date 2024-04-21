@@ -10,9 +10,8 @@ import java.io.Serializable;
  */
 @Data
 @AllArgsConstructor
-public class HelloObject implements Serializable {
+public class TestCountAddObject implements Serializable {
 
-    private Integer id;
-    private String message;
-
+    private Integer num;
+    private Integer offset;
 }

@@ -1,6 +1,6 @@
 # sRPC
 
-[![Build Status](https://app.travis-ci.com/histevehu/sRPC.svg?token=fsyLx7wqz3Fwpzu63a5T&branch=main)](https://app.travis-ci.com/histevehu/sRPC)![Static Badge](https://img.shields.io/badge/OpenJDK-17-blue)
+[![Build Status](https://app.travis-ci.com/histevehu/sRPC.svg?token=fsyLx7wqz3Fwpzu63a5T&branch=main)](https://app.travis-ci.com/histevehu/sRPC) ![Static Badge](https://img.shields.io/badge/OpenJDK-17-blue)
 
 sRPC, a RPC framework made by Steve.
 

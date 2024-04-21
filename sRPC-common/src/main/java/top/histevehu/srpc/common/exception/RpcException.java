@@ -2,6 +2,9 @@ package top.histevehu.srpc.common.exception;
 
 import top.histevehu.srpc.common.enumeration.RpcError;
 
+/**
+ * sRPC异常类
+ */
 public class RpcException extends RuntimeException {
 
     public RpcException(RpcError error, String detail) {
