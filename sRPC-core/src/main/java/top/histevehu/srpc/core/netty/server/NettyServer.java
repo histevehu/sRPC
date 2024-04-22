@@ -41,9 +41,9 @@ public class NettyServer implements RpcServer {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast(new CommonEncoder(new KryoSerializer()));
-                            pipeline.addLast(new CommonDecoder());
-                            pipeline.addLast(new NettyServerHandler());
+                            pipeline.addLast(new CommonEncoder(new KryoSerializer()))
+                                    .addLast(new CommonDecoder())
+                                    .addLast(new NettyServerHandler());
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(port).sync();
