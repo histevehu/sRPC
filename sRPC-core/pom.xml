@@ -47,6 +47,12 @@
             <artifactId>jackson-annotations</artifactId>
         </dependency>
         <dependency>
+            <groupId>com.esotericsoftware</groupId>
+            <artifactId>kryo</artifactId>
+            <version>4.0.2</version>
+        </dependency>
+
+        <dependency>
             <groupId>top.histevehu</groupId>
             <artifactId>sRPC-common</artifactId>
             <version>${project.version}</version>

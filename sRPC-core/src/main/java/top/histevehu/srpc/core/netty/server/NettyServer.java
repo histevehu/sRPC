@@ -12,7 +12,7 @@ import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.core.RpcServer;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
-import top.histevehu.srpc.core.serializer.JsonSerializer;
+import top.histevehu.srpc.core.serializer.KryoSerializer;
 
 /**
  * sRPC 基于Netty的服务端
@@ -33,7 +33,7 @@ public class NettyServer implements RpcServer {
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
                     .option(ChannelOption.SO_BACKLOG, 256)
-                    .option(ChannelOption.SO_KEEPALIVE, true)
+                    .childOption(ChannelOption.SO_KEEPALIVE, true)
                     // 禁用Nagle算法，提高数据传输效率
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     // 为worker线程组的SocketChannel添加处理器
@@ -41,7 +41,7 @@ public class NettyServer implements RpcServer {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
-                            pipeline.addLast(new CommonEncoder(new JsonSerializer()));
+                            pipeline.addLast(new CommonEncoder(new KryoSerializer()));
                             pipeline.addLast(new CommonDecoder());
                             pipeline.addLast(new NettyServerHandler());
                         }

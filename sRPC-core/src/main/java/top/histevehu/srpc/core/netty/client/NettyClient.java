@@ -13,7 +13,7 @@ import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.core.RpcClient;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
-import top.histevehu.srpc.core.serializer.JsonSerializer;
+import top.histevehu.srpc.core.serializer.KryoSerializer;
 
 /**
  * sRPC 基于Netty的客户端
@@ -41,7 +41,7 @@ public class NettyClient implements RpcClient {
                     @Override
                     protected void initChannel(SocketChannel ch) throws Exception {
                         ChannelPipeline pipeline = ch.pipeline();
-                        pipeline.addLast(new CommonEncoder(new JsonSerializer()))
+                        pipeline.addLast(new CommonEncoder(new KryoSerializer()))
                                 .addLast(new CommonDecoder())
                                 .addLast(new NettyClientHandler());
                     }
