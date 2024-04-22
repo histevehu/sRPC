@@ -5,12 +5,12 @@ import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddService;
 import top.histevehu.srpc.core.registry.DefaultServiceRegistry;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
-import top.histevehu.srpc.core.server.RpcServer;
+import top.histevehu.srpc.core.socket.server.SocketServer;
 
 /**
- * 测试用服务端
+ * 测试用sRPC Socket服务端
  */
-public class TestServer {
+public class TestSocketServer {
 
     public static void main(String[] args) {
         HelloService helloService = new HelloServiceImpl();
@@ -19,8 +19,8 @@ public class TestServer {
         ServiceRegistry serviceRegistry = new DefaultServiceRegistry();
         serviceRegistry.register(helloService)
                 .register(testCountAddService);
-        RpcServer rpcServer = new RpcServer(serviceRegistry);
-        rpcServer.start(9000);
+        SocketServer socketServer = new SocketServer(serviceRegistry);
+        socketServer.start(9000);
     }
 
 }

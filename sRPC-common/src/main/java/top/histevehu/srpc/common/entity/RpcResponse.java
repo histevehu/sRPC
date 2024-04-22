@@ -1,6 +1,7 @@
 package top.histevehu.srpc.common.entity;
 
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import top.histevehu.srpc.common.enumeration.ResponseCode;
 
 import java.io.Serializable;
@@ -9,6 +10,7 @@ import java.io.Serializable;
  * 服务端执行完成或出错后向客户端返回的结果对象
  */
 @Data
+@NoArgsConstructor
 public class RpcResponse<T> implements Serializable {
 
     /**

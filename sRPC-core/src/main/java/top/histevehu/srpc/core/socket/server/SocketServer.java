@@ -1,7 +1,8 @@
-package top.histevehu.srpc.core.server;
+package top.histevehu.srpc.core.socket.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.histevehu.srpc.core.RpcServer;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
 
 import java.io.IOException;
@@ -10,9 +11,9 @@ import java.net.Socket;
 import java.util.concurrent.*;
 
 /**
- * sRPC服务端（远程方法提供方）
+ * sRPC 基于Socket的服务端
  */
-public class RpcServer {
+public class SocketServer implements RpcServer {
 
     private static final int CORE_POOL_SIZE = 5;
     private static final int MAXIMUM_POOL_SIZE = 50;
@@ -21,23 +22,20 @@ public class RpcServer {
     private final ExecutorService threadPool;
     private final ServiceRegistry serviceRegistry;
 
-    private static final Logger logger = LoggerFactory.getLogger(RpcServer.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
     /**
-     * 初始化 sRPC 服务端
+     * Socket服务端构造方法
+     *
      * @param serviceRegistry 已经注册好服务的ServiceRegistry
      */
-    public RpcServer(ServiceRegistry serviceRegistry) {
+    public SocketServer(ServiceRegistry serviceRegistry) {
         this.serviceRegistry = serviceRegistry;
         BlockingQueue<Runnable> workingQueue = new ArrayBlockingQueue<>(BLOCKING_QUEUE_CAPACITY);
         ThreadFactory threadFactory = Executors.defaultThreadFactory();
         threadPool = new ThreadPoolExecutor(CORE_POOL_SIZE, MAXIMUM_POOL_SIZE, KEEP_ALIVE_TIME, TimeUnit.SECONDS, workingQueue, threadFactory);
     }
 
-    /**
-     * 启动sRPC 服务端
-     * @param port 端口
-     */
     public void start(int port) {
         logger.info("sRPC服务端正在启动...");
         try (ServerSocket serverSocket = new ServerSocket(port)) {

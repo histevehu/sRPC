@@ -4,7 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Getter;
 
 /**
- * 方法调用的响应状态码
+ * 方法调用的响应状态码枚举类
  */
 @AllArgsConstructor
 @Getter

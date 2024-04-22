@@ -1,7 +1,9 @@
 package top.histevehu.srpc.common.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.io.Serializable;
 
@@ -10,6 +12,8 @@ import java.io.Serializable;
  */
 @Data
 @Builder
+@AllArgsConstructor
+@NoArgsConstructor
 // TODO:使用kryo替代JDK自带的序列化
 public class RpcRequest implements Serializable {
 

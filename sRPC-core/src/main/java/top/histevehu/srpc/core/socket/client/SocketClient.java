@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core.client;
+package top.histevehu.srpc.core.socket.client;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -7,6 +7,7 @@ import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.common.enumeration.ResponseCode;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.core.RpcClient;
 
 import java.io.IOException;
 import java.io.ObjectInputStream;
@@ -14,13 +15,28 @@ import java.io.ObjectOutputStream;
 import java.net.Socket;
 
 /**
- * sRPC客户端（调用远程方法）
+ * sRPC基于Socket的客户端
  */
-public class RpcClient {
+public class SocketClient implements RpcClient {
 
-    private static final Logger logger = LoggerFactory.getLogger(RpcClient.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocketClient.class);
 
-    public Object sendRequest(RpcRequest rpcRequest, String host, int port) {
+    private final String host;
+    private final int port;
+
+    /**
+     * Socket客户端构造方法
+     *
+     * @param host 服务端地址
+     * @param port 服务端端口
+     */
+    public SocketClient(String host, int port) {
+        this.host = host;
+        this.port = port;
+    }
+
+    @Override
+    public Object sendRequest(RpcRequest rpcRequest) {
         try (Socket socket = new Socket(host, port)) {
             ObjectOutputStream objectOutputStream = new ObjectOutputStream(socket.getOutputStream());
             ObjectInputStream objectInputStream = new ObjectInputStream(socket.getInputStream());
