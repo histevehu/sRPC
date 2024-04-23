@@ -5,6 +5,7 @@ import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddService;
 import top.histevehu.srpc.core.registry.DefaultServiceRegistry;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
+import top.histevehu.srpc.core.serializer.KryoSerializer;
 import top.histevehu.srpc.core.socket.server.SocketServer;
 
 /**
@@ -20,6 +21,7 @@ public class TestSocketServer {
         serviceRegistry.register(helloService)
                 .register(testCountAddService);
         SocketServer socketServer = new SocketServer(serviceRegistry);
+        socketServer.setSerializer(new KryoSerializer());
         socketServer.start(9000);
     }
 
