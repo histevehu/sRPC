@@ -40,9 +40,12 @@ public class NettyServer implements RpcServer {
             serverBootstrap.group(bossGroup, workerGroup)
                     .channel(NioServerSocketChannel.class)
                     .handler(new LoggingHandler(LogLevel.INFO))
+                    // 表示系统用于临时存放已完成三次握手的请求的队列的最大长度
+                    // 如果连接建立频繁，服务器处理创建新连接较慢，可以适当调大这个参数
                     .option(ChannelOption.SO_BACKLOG, 256)
+                    // 是否开启 TCP 底层心跳机制
                     .childOption(ChannelOption.SO_KEEPALIVE, true)
-                    // 禁用Nagle算法，提高数据传输效率
+                    // 禁用Nagle算法（该算法的作用是尽可能的发送大数据快，减少网络传输），提高数据传输效率
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     // 为worker线程组的SocketChannel添加处理器
                     .childHandler(new ChannelInitializer<SocketChannel>() {

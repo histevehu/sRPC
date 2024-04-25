@@ -41,7 +41,7 @@ public class WorkerThread implements Runnable {
             String interfaceName = rpcRequest.getInterfaceName();
             Object service = serviceRegistry.getService(interfaceName);
             Object result = RpcServerRequestHandler.handle(rpcRequest, service);
-            RpcResponse<Object> response = RpcResponse.success(result);
+            RpcResponse<Object> response = RpcResponse.success(result, rpcRequest.getRequestId());
             ObjectWriter.writeObject(outputStream, response, serializer);
         } catch (IOException e) {
             logger.error("调用或发送时有错误发生：", e);

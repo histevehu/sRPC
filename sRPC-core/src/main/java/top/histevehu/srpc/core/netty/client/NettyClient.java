@@ -12,6 +12,7 @@ import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.util.RpcMessageChecker;
 import top.histevehu.srpc.core.RpcClient;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
@@ -39,7 +40,10 @@ public class NettyClient implements RpcClient {
         bootstrap = new Bootstrap();
         bootstrap.group(group)
                 .channel(NioSocketChannel.class)
-                .option(ChannelOption.SO_KEEPALIVE, true);
+                .option(ChannelOption.SO_KEEPALIVE, true)
+                // 连接的超时时间，超过这个时间还是建立不上的话则代表连接失败
+                //  如果 5 秒之内没有发送数据给服务端的话，就发送一次心跳请求
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000);
     }
 
     @Override
@@ -69,9 +73,12 @@ public class NettyClient implements RpcClient {
                         logger.error("发送消息时有错误发生: ", future1.cause());
                     }
                 });
+                // 阻塞等待，直到Channel关闭
                 channel.closeFuture().sync();
-                AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse");
+                // 将服务端返回的数据也就是RpcResponse对象取出
+                AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse" + rpcRequest.getRequestId());
                 RpcResponse rpcResponse = channel.attr(key).get();
+                RpcMessageChecker.check(rpcRequest, rpcResponse);
                 return rpcResponse.getData();
             }
 

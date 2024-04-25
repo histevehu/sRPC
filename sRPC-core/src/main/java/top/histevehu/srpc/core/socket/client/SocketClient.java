@@ -7,6 +7,7 @@ import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.common.enumeration.ResponseCode;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.util.RpcMessageChecker;
 import top.histevehu.srpc.core.RpcClient;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.socket.util.ObjectReader;
@@ -60,6 +61,7 @@ public class SocketClient implements RpcClient {
                 logger.error("调用服务失败, service: {}, response:{}", rpcRequest.getInterfaceName(), rpcResponse);
                 throw new RpcException(RpcError.SERVICE_INVOCATION_FAILURE, " service:" + rpcRequest.getInterfaceName());
             }
+            RpcMessageChecker.check(rpcRequest, rpcResponse);
             return rpcResponse.getData();
         } catch (IOException e) {
             logger.error("sRPC调用时有错误发生：", e);
