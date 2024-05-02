@@ -14,7 +14,7 @@ import java.io.Serializable;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-// TODO:使用kryo替代JDK自带的序列化
+
 public class RpcRequest implements Serializable {
 
     /**

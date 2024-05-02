@@ -5,7 +5,7 @@ import top.histevehu.srpc.api.TestCountAddService;
 import top.histevehu.srpc.core.netty.server.NettyServer;
 import top.histevehu.srpc.core.registry.DefaultServiceRegistry;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
-import top.histevehu.srpc.core.serializer.KryoSerializer;
+import top.histevehu.srpc.core.serializer.ProtobufSerializer;
 
 /*
  * 测试用sRPC Netty服务端
@@ -18,7 +18,7 @@ public class TestNettyServer {
         registry.register(helloService)
                 .register(testCountAddService);
         NettyServer server = new NettyServer();
-        server.setSerializer(new KryoSerializer());
+        server.setSerializer(new ProtobufSerializer());
         server.start(9001);
     }
 }
