@@ -1,9 +1,10 @@
 package top.histevehu.srpc.core.netty.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.util.AttributeKey;
 import org.slf4j.Logger;
@@ -14,9 +15,10 @@ import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.util.RpcMessageChecker;
 import top.histevehu.srpc.core.RpcClient;
-import top.histevehu.srpc.core.codec.CommonDecoder;
-import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
+
+import java.net.InetSocketAddress;
+import java.util.concurrent.atomic.AtomicReference;
 
 /**
  * sRPC 基于Netty的客户端
@@ -52,20 +54,10 @@ public class NettyClient implements RpcClient {
             logger.error("未设置序列化器");
             throw new RpcException(RpcError.SERIALIZER_NOT_FOUND);
         }
-        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel ch) {
-                ChannelPipeline pipeline = ch.pipeline();
-                pipeline.addLast(new CommonEncoder(serializer))
-                        .addLast(new CommonDecoder())
-                        .addLast(new NettyClientHandler());
-            }
-        });
+        AtomicReference<Object> result = new AtomicReference<>(null);
         try {
-            ChannelFuture future = bootstrap.connect(host, port).sync();
-            logger.info("客户端连接到服务器 {}:{}", host, port);
-            Channel channel = future.channel();
-            if (channel != null) {
+            Channel channel = ChannelProvider.get(new InetSocketAddress(host, port), serializer);
+            if (channel.isActive()) {
                 channel.writeAndFlush(rpcRequest).addListener(future1 -> {
                     if (future1.isSuccess()) {
                         logger.info(String.format("客户端发送消息: %s", rpcRequest.toString()));
@@ -79,13 +71,14 @@ public class NettyClient implements RpcClient {
                 AttributeKey<RpcResponse> key = AttributeKey.valueOf("rpcResponse" + rpcRequest.getRequestId());
                 RpcResponse rpcResponse = channel.attr(key).get();
                 RpcMessageChecker.check(rpcRequest, rpcResponse);
-                return rpcResponse.getData();
+                result.set(rpcResponse.getData());
+            } else {
+                System.exit(0);
             }
-
         } catch (InterruptedException e) {
             logger.error("发送消息时有错误发生: ", e);
         }
-        return null;
+        return result.get();
     }
 
     @Override
