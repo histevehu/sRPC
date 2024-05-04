@@ -9,7 +9,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
-import top.histevehu.srpc.common.util.ThreadPoolFactory;
+import top.histevehu.srpc.common.factory.ThreadPoolFactory;
 import top.histevehu.srpc.core.handler.RequestHandler;
 
 import java.util.concurrent.ExecutorService;

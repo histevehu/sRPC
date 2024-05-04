@@ -1,4 +1,4 @@
-package top.histevehu.srpc.common.util;
+package top.histevehu.srpc.common.factory;
 
 import com.google.common.util.concurrent.ThreadFactoryBuilder;
 

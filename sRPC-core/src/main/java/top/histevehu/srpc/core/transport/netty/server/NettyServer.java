@@ -13,6 +13,7 @@ import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
+import top.histevehu.srpc.core.hook.ShutdownHook;
 import top.histevehu.srpc.core.provider.ServiceProvider;
 import top.histevehu.srpc.core.provider.ServiceProviderImpl;
 import top.histevehu.srpc.core.registry.NacosServiceRegistry;
@@ -82,6 +83,7 @@ public class NettyServer implements RpcServer {
                                     .addLast(new NettyServerHandler());
                         }
                     });
+            ShutdownHook.getShutdownHook().addClearAllHook();
             ChannelFuture future = serverBootstrap.bind(port).sync();
             future.channel().closeFuture().sync();
 
