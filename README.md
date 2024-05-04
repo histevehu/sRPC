@@ -4,6 +4,13 @@
 
 sRPC, a RPC framework made by Steve.
 
+## 特性
+
+- 实现了基于 Java 原生 Socket 传输与 Netty 传输两种网络传输方式
+- 实现了四种序列化算法，Json 方式、Kryo 算法、Hessian 算法与 Google Protobuf 方式
+- 使用 Nacos 作为注册中心，管理服务提供者信息
+- 实现自定义的通信协议
+
 ## 项目模块结构
 
 - **sRPC-api** ：服务接口

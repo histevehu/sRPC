@@ -7,7 +7,7 @@ public interface ServiceProvider {
     /**
      * 添加提供服务的实例对象
      */
-    <T> ServiceProvider addServiceProvider(T service);
+    <T> ServiceProvider addServiceProvider(T service, Class<T> serviceClass);
 
     /**
      * 获取提供服务的实例对象

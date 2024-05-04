@@ -26,6 +26,6 @@ public interface RpcServer {
      * @param service
      * @param serviceClass
      */
-    <T> void regService(Object service, Class<T> serviceClass);
+    <T> void regService(T service, Class<T> serviceClass);
 
 }

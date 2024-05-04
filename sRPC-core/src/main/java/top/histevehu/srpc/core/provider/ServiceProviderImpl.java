@@ -24,22 +24,14 @@ public class ServiceProviderImpl implements ServiceProvider {
     private static final Set<String> registeredService = new CopyOnWriteArraySet<>();
 
     @Override
-    public <T> ServiceProvider addServiceProvider(T service) {
+    public <T> ServiceProvider addServiceProvider(T service, Class<T> serviceClass) {
         // 获取服务类从java语言规范定义的格式输出
-        String serviceName = service.getClass().getCanonicalName();
-        if (registeredService.contains(serviceName))
-            return this;
-        registeredService.add(serviceName);
-        Class<?>[] interfaces = service.getClass().getInterfaces();
-        if (interfaces.length == 0) {
-            throw new RpcException(RpcError.SERVICE_NOT_IMPLEMENT_ANY_INTERFACE);
+        String serviceName = serviceClass.getCanonicalName();
+        if (!registeredService.contains(serviceName)) {
+            registeredService.add(serviceName);
+            serviceMap.put(serviceName, service);
+            logger.info("向接口: {} 注册服务: {}", service.getClass().getInterfaces(), serviceName);
         }
-        // 对象 A 实现了接口 X 和 Y，那么将 A 注册进去后，会有两个服务接口名 X 和 Y 对应于 A 对象。
-        // 因此某个接口只能有一个对象提供服务。接口和对象为多对一关系
-        for (Class<?> i : interfaces) {
-            serviceMap.put(i.getCanonicalName(), service);
-        }
-        logger.info("接口：{} 注册服务：{}", interfaces, serviceName);
         return this;
     }
 

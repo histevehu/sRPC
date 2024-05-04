@@ -14,8 +14,8 @@ import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.util.RpcMessageChecker;
-import top.histevehu.srpc.core.registry.NacosServiceRegistry;
-import top.histevehu.srpc.core.registry.ServiceRegistry;
+import top.histevehu.srpc.core.registry.NacosServiceDiscovery;
+import top.histevehu.srpc.core.registry.ServiceDiscovery;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
 
@@ -30,11 +30,11 @@ public class NettyClient implements RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
 
     private static final Bootstrap bootstrap;
-    private final ServiceRegistry serviceRegistry;
+    private final ServiceDiscovery serviceDiscovery;
     private CommonSerializer serializer;
 
     public NettyClient() {
-        this.serviceRegistry = new NacosServiceRegistry();
+        this.serviceDiscovery = new NacosServiceDiscovery();
     }
 
     static {
@@ -56,7 +56,7 @@ public class NettyClient implements RpcClient {
         }
         AtomicReference<Object> result = new AtomicReference<>(null);
         try {
-            InetSocketAddress inetSocketAddress = serviceRegistry.getService(rpcRequest.getInterfaceName());
+            InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
             Channel channel = ChannelProvider.get(inetSocketAddress, serializer);
             if (channel.isActive()) {
                 channel.writeAndFlush(rpcRequest).addListener(future1 -> {
