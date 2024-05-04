@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core;
+package top.histevehu.srpc.core.transport;
 
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.core.serializer.CommonSerializer;

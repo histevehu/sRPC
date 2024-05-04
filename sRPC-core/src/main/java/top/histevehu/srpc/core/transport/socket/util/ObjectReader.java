@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core.socket.util;
+package top.histevehu.srpc.core.transport.socket.util;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -4,17 +4,17 @@ import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddObject;
 import top.histevehu.srpc.api.TestCountAddService;
-import top.histevehu.srpc.core.RpcClient;
-import top.histevehu.srpc.core.RpcClientProxy;
-import top.histevehu.srpc.core.netty.client.NettyClient;
 import top.histevehu.srpc.core.serializer.ProtobufSerializer;
+import top.histevehu.srpc.core.transport.RpcClient;
+import top.histevehu.srpc.core.transport.RpcClientProxy;
+import top.histevehu.srpc.core.transport.netty.client.NettyClient;
 
 /*
  * 测试用sRPC Netty服务端
  */
 public class TestNettyClient {
     public static void main(String[] args) {
-        RpcClient client = new NettyClient("127.0.0.1", 9001);
+        RpcClient client = new NettyClient();
         client.setSerializer(new ProtobufSerializer());
         RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
         HelloService helloService = rpcClientProxy.getProxy(HelloService.class);

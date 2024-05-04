@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core.netty.server;
+package top.histevehu.srpc.core.transport.netty.server;
 
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.*;
@@ -11,10 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
-import top.histevehu.srpc.core.RpcServer;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
+import top.histevehu.srpc.core.provider.ServiceProvider;
+import top.histevehu.srpc.core.provider.ServiceProviderImpl;
+import top.histevehu.srpc.core.registry.NacosServiceRegistry;
+import top.histevehu.srpc.core.registry.ServiceRegistry;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
+import top.histevehu.srpc.core.transport.RpcServer;
+
+import java.net.InetSocketAddress;
 
 /**
  * sRPC 基于Netty的服务端
@@ -23,14 +29,33 @@ public class NettyServer implements RpcServer {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyServer.class);
 
+    private final String host;
+    private final int port;
+
+    private final ServiceRegistry serviceRegistry;
+    private final ServiceProvider serviceProvider;
+
     private CommonSerializer serializer;
 
+    public NettyServer(String host, int port) {
+        this.host = host;
+        this.port = port;
+        serviceRegistry = new NacosServiceRegistry();
+        serviceProvider = new ServiceProviderImpl();
+    }
+
     @Override
-    public void start(int port) {
+    public <T> void regService(Object service, Class<T> serviceClass) {
         if (serializer == null) {
             logger.error("未设置序列化器");
             throw new RpcException(RpcError.SERIALIZER_NOT_FOUND);
         }
+        serviceProvider.addServiceProvider(service);
+        serviceRegistry.register(serviceClass.getCanonicalName(), new InetSocketAddress(host, port));
+    }
+
+    @Override
+    public void start() {
         // BossGroup负责接收客户端的连接
         EventLoopGroup bossGroup = new NioEventLoopGroup();
         // WorkerGroup负责网络的读写，业务处理

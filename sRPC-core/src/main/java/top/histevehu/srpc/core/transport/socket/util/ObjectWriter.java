@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core.socket.util;
+package top.histevehu.srpc.core.transport.socket.util;
 
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.enumeration.PackageType;

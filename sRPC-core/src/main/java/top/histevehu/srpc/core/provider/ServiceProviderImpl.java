@@ -1,4 +1,5 @@
-package top.histevehu.srpc.core.registry;
+package top.histevehu.srpc.core.provider;
+
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -11,11 +12,11 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
 
 /*
- * 默认服务注册表
+ * 本地服务注册表，保存服务端本地的服务
  */
-public class DefaultServiceRegistry implements ServiceRegistry {
+public class ServiceProviderImpl implements ServiceProvider {
 
-    private static final Logger logger = LoggerFactory.getLogger(DefaultServiceRegistry.class);
+    private static final Logger logger = LoggerFactory.getLogger(ServiceProvider.class);
 
     // 保存服务名与提供服务的对象的对应关系
     private static final Map<String, Object> serviceMap = new ConcurrentHashMap<>();
@@ -23,7 +24,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
     private static final Set<String> registeredService = new CopyOnWriteArraySet<>();
 
     @Override
-    public <T> ServiceRegistry register(T service) {
+    public <T> ServiceProvider addServiceProvider(T service) {
         // 获取服务类从java语言规范定义的格式输出
         String serviceName = service.getClass().getCanonicalName();
         if (registeredService.contains(serviceName))
@@ -50,7 +51,7 @@ public class DefaultServiceRegistry implements ServiceRegistry {
      * @throws RpcException 若找不到服务，则抛出异常
      */
     @Override
-    public Object getService(String serviceName) {
+    public Object getServiceProvider(String serviceName) {
         Object service = serviceMap.get(serviceName);
         if (service == null) {
             throw new RpcException(RpcError.SERVICE_NOT_FOUND);
@@ -58,3 +59,4 @@ public class DefaultServiceRegistry implements ServiceRegistry {
         return service;
     }
 }
+

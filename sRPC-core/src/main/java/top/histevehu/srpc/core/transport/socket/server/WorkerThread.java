@@ -1,14 +1,13 @@
-package top.histevehu.srpc.core.socket.server;
+package top.histevehu.srpc.core.transport.socket.server;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
-import top.histevehu.srpc.core.RpcServerRequestHandler;
-import top.histevehu.srpc.core.registry.ServiceRegistry;
+import top.histevehu.srpc.core.handler.RequestHandler;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
-import top.histevehu.srpc.core.socket.util.ObjectReader;
-import top.histevehu.srpc.core.socket.util.ObjectWriter;
+import top.histevehu.srpc.core.transport.socket.util.ObjectReader;
+import top.histevehu.srpc.core.transport.socket.util.ObjectWriter;
 
 import java.io.IOException;
 import java.io.InputStream;
@@ -23,12 +22,12 @@ public class WorkerThread implements Runnable {
     private static final Logger logger = LoggerFactory.getLogger(WorkerThread.class);
 
     private final Socket socket;
-    private final ServiceRegistry serviceRegistry;
+    private final RequestHandler requestHandler;
     private final CommonSerializer serializer;
 
-    public WorkerThread(Socket socket, ServiceRegistry serviceRegistry, CommonSerializer serializer) {
+    public WorkerThread(Socket socket, RequestHandler requestHandler, CommonSerializer serializer) {
         this.socket = socket;
-        this.serviceRegistry = serviceRegistry;
+        this.requestHandler = requestHandler;
         this.serializer = serializer;
     }
 
@@ -37,10 +36,7 @@ public class WorkerThread implements Runnable {
         try (InputStream inputStream = socket.getInputStream();
              OutputStream outputStream = socket.getOutputStream()) {
             RpcRequest rpcRequest = (RpcRequest) ObjectReader.readObject(inputStream);
-            // 通过注册中心获得服务
-            String interfaceName = rpcRequest.getInterfaceName();
-            Object service = serviceRegistry.getService(interfaceName);
-            Object result = RpcServerRequestHandler.handle(rpcRequest, service);
+            Object result = requestHandler.handle(rpcRequest);
             RpcResponse<Object> response = RpcResponse.success(result, rpcRequest.getRequestId());
             ObjectWriter.writeObject(outputStream, response, serializer);
         } catch (IOException e) {

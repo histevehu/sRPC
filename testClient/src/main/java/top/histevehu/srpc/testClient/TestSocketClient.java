@@ -5,9 +5,9 @@ import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddObject;
 import top.histevehu.srpc.api.TestCountAddService;
-import top.histevehu.srpc.core.RpcClientProxy;
 import top.histevehu.srpc.core.serializer.KryoSerializer;
-import top.histevehu.srpc.core.socket.client.SocketClient;
+import top.histevehu.srpc.core.transport.RpcClientProxy;
+import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 
 /**
  * 测试用客户端
@@ -15,7 +15,7 @@ import top.histevehu.srpc.core.socket.client.SocketClient;
 public class TestSocketClient {
 
     public static void main(String[] args) {
-        SocketClient client = new SocketClient("127.0.0.1", 9000);
+        SocketClient client = new SocketClient();
         client.setSerializer(new KryoSerializer());
         RpcClientProxy proxy = new RpcClientProxy(client);
         HelloService helloService = proxy.getProxy(HelloService.class);

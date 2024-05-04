@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core;
+package top.histevehu.srpc.core.transport;
 
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 
@@ -11,7 +11,7 @@ public interface RpcServer {
      *
      * @param port 端口
      */
-    void start(int port);
+    void start();
 
     /**
      * 设置序列化反序列化器
@@ -19,4 +19,13 @@ public interface RpcServer {
      * @param serializer 序列化器
      */
     void setSerializer(CommonSerializer serializer);
+
+    /**
+     * 注册服务。包括向本地服务注册表和注册中心注册
+     *
+     * @param service
+     * @param serviceClass
+     */
+    <T> void regService(Object service, Class<T> serviceClass);
+
 }

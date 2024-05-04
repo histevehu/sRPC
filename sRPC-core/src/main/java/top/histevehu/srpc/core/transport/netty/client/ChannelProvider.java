@@ -1,4 +1,4 @@
-package top.histevehu.srpc.core.netty.client;
+package top.histevehu.srpc.core.transport.netty.client;
 
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.*;
