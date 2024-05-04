@@ -4,7 +4,7 @@ import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddObject;
 import top.histevehu.srpc.api.TestCountAddService;
-import top.histevehu.srpc.core.serializer.ProtobufSerializer;
+import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
 import top.histevehu.srpc.core.transport.RpcClientProxy;
 import top.histevehu.srpc.core.transport.netty.client.NettyClient;
@@ -14,8 +14,7 @@ import top.histevehu.srpc.core.transport.netty.client.NettyClient;
  */
 public class TestNettyClient {
     public static void main(String[] args) {
-        RpcClient client = new NettyClient();
-        client.setSerializer(new ProtobufSerializer());
+        RpcClient client = new NettyClient(CommonSerializer.PROTOBUF_SERIALIZER);
         RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
         HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
         HelloObject object = new HelloObject(8, "这是通过sRPC Netty远程调用HelloService的测试");

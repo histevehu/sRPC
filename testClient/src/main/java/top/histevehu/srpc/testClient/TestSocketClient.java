@@ -1,11 +1,10 @@
 package top.histevehu.srpc.testClient;
 
-
 import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddObject;
 import top.histevehu.srpc.api.TestCountAddService;
-import top.histevehu.srpc.core.serializer.KryoSerializer;
+import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClientProxy;
 import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 
@@ -15,8 +14,7 @@ import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 public class TestSocketClient {
 
     public static void main(String[] args) {
-        SocketClient client = new SocketClient();
-        client.setSerializer(new KryoSerializer());
+        SocketClient client = new SocketClient(CommonSerializer.KRYO_SERIALIZER);
         RpcClientProxy proxy = new RpcClientProxy(client);
         HelloService helloService = proxy.getProxy(HelloService.class);
         HelloObject object = new HelloObject(7, "这是通过sRPC Socket远程调用HelloService的测试");

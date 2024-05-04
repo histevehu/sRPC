@@ -7,6 +7,12 @@ import top.histevehu.srpc.core.serializer.CommonSerializer;
  * sRPC客户端接口（调用远程方法方）
  */
 public interface RpcClient {
+
+    /**
+     * 默认（反）序列化器
+     */
+    int DEFAULT_SERIALIZER = CommonSerializer.KRYO_SERIALIZER;
+
     /**
      * 发送RPC请求
      *
@@ -14,11 +20,4 @@ public interface RpcClient {
      * @return 响应对象
      */
     Object sendRequest(RpcRequest rpcRequest);
-
-    /**
-     * 设置序列化反序列化器
-     *
-     * @param serializer 序列化器
-     */
-    void setSerializer(CommonSerializer serializer);
 }

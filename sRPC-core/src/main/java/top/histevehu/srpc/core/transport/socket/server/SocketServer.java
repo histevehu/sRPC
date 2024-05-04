@@ -29,23 +29,25 @@ public class SocketServer implements RpcServer {
 
     private final String host;
     private final int port;
-    private CommonSerializer serializer;
-    private RequestHandler requestHandler = new RequestHandler();
+    private final CommonSerializer serializer;
+    private final RequestHandler requestHandler = new RequestHandler();
 
     private final ServiceRegistry serviceRegistry;
     private final ServiceProvider serviceProvider;
 
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
-    /**
-     * Socket服务端构造方法
-     */
     public SocketServer(String host, int port) {
+        this(host, port, DEFAULT_SERIALIZER);
+    }
+
+    public SocketServer(String host, int port, Integer serializer) {
         this.host = host;
         this.port = port;
-        threadPool = ThreadPoolFactory.createDefaultThreadPool("sRPC-SocketServer");
+        threadPool = ThreadPoolFactory.createDefaultThreadPool("socket-rpc-server");
         this.serviceRegistry = new NacosServiceRegistry();
         this.serviceProvider = new ServiceProviderImpl();
+        this.serializer = CommonSerializer.getByCode(serializer);
     }
 
     @Override
@@ -74,11 +76,6 @@ public class SocketServer implements RpcServer {
         } finally {
             threadPool.shutdown();
         }
-    }
-
-    @Override
-    public void setSerializer(CommonSerializer serializer) {
-        this.serializer = serializer;
     }
 
 }
