@@ -14,7 +14,7 @@ import top.histevehu.srpc.core.transport.netty.client.NettyClient;
  */
 public class TestNettyClient {
     public static void main(String[] args) {
-        RpcClient client = new NettyClient(CommonSerializer.PROTOBUF_SERIALIZER);
+        RpcClient client = new NettyClient(CommonSerializer.KRYO_SERIALIZER);
         RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
         HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
         HelloObject object = new HelloObject(8, "这是通过sRPC Netty远程调用HelloService的测试");

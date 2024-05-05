@@ -7,6 +7,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.enumeration.RpcError;
@@ -22,6 +23,7 @@ import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcServer;
 
 import java.net.InetSocketAddress;
+import java.util.concurrent.TimeUnit;
 
 /**
  * sRPC 基于Netty的服务端
@@ -86,7 +88,10 @@ public class NettyServer implements RpcServer {
                             ChannelPipeline pipeline = ch.pipeline();
                             pipeline.addLast(new CommonEncoder(serializer))
                                     .addLast(new CommonDecoder())
-                                    .addLast(new NettyServerHandler());
+                                    .addLast(new NettyServerHandler())
+                                    // 服务端心跳检查
+                                    // 若30秒内该链上都没有读到数据，就会调用userEventTriggered方法
+                                    .addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(port).sync();

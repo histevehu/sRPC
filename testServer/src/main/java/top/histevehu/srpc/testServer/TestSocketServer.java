@@ -14,7 +14,7 @@ public class TestSocketServer {
     public static void main(String[] args) {
         HelloService helloService = new HelloServiceImpl();
         TestCountAddService testCountAddService = new TestCountAddServiceImpl();
-        SocketServer socketServer = new SocketServer("127.0.0.1", 9000, CommonSerializer.HESSIAN_SERIALIZER);
+        SocketServer socketServer = new SocketServer("127.0.0.1", 9000, CommonSerializer.KRYO_SERIALIZER);
         socketServer.regService(helloService, HelloService.class);
         socketServer.regService(testCountAddService, TestCountAddService.class);
         socketServer.start();

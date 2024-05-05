@@ -34,6 +34,10 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
     protected void channelRead0(ChannelHandlerContext ctx, RpcRequest msg) throws Exception {
         threadPool.execute(() -> {
             try {
+                if (msg.getHeartBeat()) {
+                    logger.info("接收到客户端{}心跳包", ctx.channel().remoteAddress());
+                    return;
+                }
                 logger.info("sRPC服务器接收到请求: {}", msg);
                 Object result = requestHandler.handle(msg);
                 ChannelFuture future = ctx.writeAndFlush(RpcResponse.success(result, msg.getRequestId()));

@@ -10,6 +10,8 @@ public interface CommonSerializer {
     Integer HESSIAN_SERIALIZER = 2;
     Integer PROTOBUF_SERIALIZER = 3;
 
+    Integer DEFAULT_SERIALIZER = KRYO_SERIALIZER;
+
     byte[] serialize(Object obj);
 
     Object deserialize(byte[] bytes, Class<?> clazz);

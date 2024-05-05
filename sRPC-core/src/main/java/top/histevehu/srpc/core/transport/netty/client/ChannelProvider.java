@@ -5,6 +5,7 @@ import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.enumeration.RpcError;
@@ -36,7 +37,10 @@ public class ChannelProvider {
                 // 自定义序列化编解码器：rpcResponse -> ByteBuf
                 ch.pipeline().addLast(new CommonEncoder(serializer))
                         .addLast(new CommonDecoder())
-                        .addLast(new NettyClientHandler());
+                        .addLast(new NettyClientHandler())
+                        // 客户端心跳检查
+                        // 若5秒内都没有往该链上写入数据，就会调用userEventTriggered方法
+                        .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
             }
         });
         CountDownLatch countDownLatch = new CountDownLatch(1);
