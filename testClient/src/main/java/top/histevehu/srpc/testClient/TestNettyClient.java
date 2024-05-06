@@ -2,6 +2,8 @@ package top.histevehu.srpc.testClient;
 
 import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
+import top.histevehu.srpc.api.TestCountAddObject;
+import top.histevehu.srpc.api.TestCountAddService;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
 import top.histevehu.srpc.core.transport.RpcClientProxy;
@@ -14,16 +16,19 @@ public class TestNettyClient {
     public static void main(String[] args) {
         RpcClient client = new NettyClient(CommonSerializer.KRYO_SERIALIZER);
         RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
+
         HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
-        HelloObject object = new HelloObject(8, "这是通过sRPC Netty远程调用HelloService的测试");
         for (int i = 0; i < 20; i++) {
+            HelloObject object = new HelloObject(i, "Hello World!");
             String res = helloService.hello(object);
             System.out.println(res);
         }
 
-        // TestCountAddService testCountAddService = rpcClientProxy.getProxy(TestCountAddService.class);
-        // TestCountAddObject testCountAddObject = new TestCountAddObject(8, 1);
-        // Integer testCountAddRes = testCountAddService.countAdd(testCountAddObject);
-        // System.out.println(testCountAddRes);
+        TestCountAddService testCountAddService = rpcClientProxy.getProxy(TestCountAddService.class);
+        for (int i = 0; i < 20; i++) {
+            TestCountAddObject testCountAddObject = new TestCountAddObject(i, 1);
+            String res = testCountAddService.countAdd(testCountAddObject);
+            System.out.println(res);
+        }
     }
 }

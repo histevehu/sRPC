@@ -5,5 +5,5 @@ package top.histevehu.srpc.api;
  */
 public interface TestCountAddService {
 
-    Integer countAdd(TestCountAddObject object);
+    String countAdd(TestCountAddObject object);
 }

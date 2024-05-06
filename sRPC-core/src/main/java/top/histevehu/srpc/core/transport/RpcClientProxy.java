@@ -13,7 +13,6 @@ import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
 import java.util.concurrent.CompletableFuture;
-import java.util.concurrent.ExecutionException;
 
 /**
  * sRPC客户端动态代理
@@ -44,12 +43,14 @@ public class RpcClientProxy implements InvocationHandler {
                 .paramTypes(method.getParameterTypes())
                 .heartBeat(false)
                 .build();
+        // 消费者的客户端类型决定了请求方式
+        // 若客户端使用原生Socket则该步调用使用 BIO，如选用 Netty 方式则该步调用使用 NIO。
         RpcResponse rpcResponse = switch (client) {
             case NettyClient nc -> {
-                CompletableFuture<RpcResponse> completableFuture = nc.sendRequest(rpcRequest);
                 try {
+                    CompletableFuture<RpcResponse> completableFuture = nc.sendRequest(rpcRequest);
                     yield completableFuture.get();
-                } catch (InterruptedException | ExecutionException e) {
+                } catch (Exception e) {
                     logger.error("调用方法: {}#{} 发生错误：{}", method.getDeclaringClass().getName(), method.getName(), e.getMessage());
                     yield null;
                 }

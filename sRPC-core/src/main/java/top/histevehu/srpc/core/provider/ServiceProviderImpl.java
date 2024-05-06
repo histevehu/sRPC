@@ -24,9 +24,7 @@ public class ServiceProviderImpl implements ServiceProvider {
     private static final Set<String> registeredService = new CopyOnWriteArraySet<>();
 
     @Override
-    public <T> ServiceProvider addServiceProvider(T service, Class<T> serviceClass) {
-        // 获取服务类从java语言规范定义的格式输出
-        String serviceName = serviceClass.getCanonicalName();
+    public <T> ServiceProvider addServiceProvider(T service, String serviceName) {
         if (!registeredService.contains(serviceName)) {
             registeredService.add(serviceName);
             serviceMap.put(serviceName, service);

@@ -1,23 +1,18 @@
 package top.histevehu.srpc.testServer;
 
 
-import top.histevehu.srpc.api.HelloService;
-import top.histevehu.srpc.api.TestCountAddService;
+import top.histevehu.srpc.core.annotation.SrpcServiceScan;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.socket.server.SocketServer;
 
 /**
  * 测试用sRPC Socket服务端
  */
+@SrpcServiceScan
 public class TestSocketServer {
 
     public static void main(String[] args) {
-        HelloService helloService = new HelloServiceSocketImpl();
-        TestCountAddService testCountAddService = new TestCountAddServiceImpl();
-
         SocketServer socketServer = new SocketServer("127.0.0.1", 9000, CommonSerializer.KRYO_SERIALIZER);
-        socketServer.regService(helloService, HelloService.class);
-        socketServer.regService(testCountAddService, TestCountAddService.class);
         socketServer.start();
     }
 

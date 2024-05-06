@@ -4,6 +4,8 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.histevehu.srpc.common.enumeration.RpcError;
+import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.util.NacosUtil;
 import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
 import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
@@ -29,6 +31,10 @@ public class NacosServiceDiscovery implements ServiceDiscovery {
     public InetSocketAddress lookupService(String serviceName) {
         try {
             List<Instance> instances = NacosUtil.getAllInstance(serviceName);
+            if (instances.isEmpty()) {
+                logger.error("找不到对应的服务: {}", serviceName);
+                throw new RpcException(RpcError.SERVICE_NOT_FOUND);
+            }
             Instance instance = loadBalancer.select(instances);
             return new InetSocketAddress(instance.getIp(), instance.getPort());
         } catch (NacosException e) {

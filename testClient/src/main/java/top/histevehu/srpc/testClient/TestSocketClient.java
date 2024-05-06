@@ -5,6 +5,7 @@ import top.histevehu.srpc.api.HelloService;
 import top.histevehu.srpc.api.TestCountAddObject;
 import top.histevehu.srpc.api.TestCountAddService;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
+import top.histevehu.srpc.core.transport.RpcClient;
 import top.histevehu.srpc.core.transport.RpcClientProxy;
 import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 
@@ -14,17 +15,22 @@ import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 public class TestSocketClient {
 
     public static void main(String[] args) {
-        SocketClient client = new SocketClient(CommonSerializer.KRYO_SERIALIZER);
-        RpcClientProxy proxy = new RpcClientProxy(client);
-        HelloService helloService = proxy.getProxy(HelloService.class);
-        HelloObject object = new HelloObject(7, "这是通过sRPC Socket远程调用HelloService的测试");
-        String helloServiceRes = helloService.hello(object);
-        System.out.println(helloServiceRes);
+        RpcClient client = new SocketClient(CommonSerializer.KRYO_SERIALIZER);
+        RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
 
-        TestCountAddService test = proxy.getProxy(TestCountAddService.class);
-        TestCountAddObject testCountAddObject = new TestCountAddObject(1, 2);
-        Integer TestCountAddServiceRes = test.countAdd(testCountAddObject);
-        System.out.println(TestCountAddServiceRes);
+        HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
+        for (int i = 0; i < 20; i++) {
+            HelloObject object = new HelloObject(i, "Hello World!");
+            String res = helloService.hello(object);
+            System.out.println(res);
+        }
+
+        TestCountAddService testCountAddService = rpcClientProxy.getProxy(TestCountAddService.class);
+        for (int i = 0; i < 20; i++) {
+            TestCountAddObject testCountAddObject = new TestCountAddObject(i, 1);
+            String res = testCountAddService.countAdd(testCountAddObject);
+            System.out.println(res);
+        }
     }
 
 }

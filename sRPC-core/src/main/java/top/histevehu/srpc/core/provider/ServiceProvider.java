@@ -1,13 +1,13 @@
 package top.histevehu.srpc.core.provider;
 
 /**
- * 保存和提供服务实例对象的接口类
+ * sRPC服务端保存和提供服务实例对象的接口类
  */
 public interface ServiceProvider {
     /**
      * 添加提供服务的实例对象
      */
-    <T> ServiceProvider addServiceProvider(T service, Class<T> serviceClass);
+    <T> ServiceProvider addServiceProvider(T service, String serviceName);
 
     /**
      * 获取提供服务的实例对象
