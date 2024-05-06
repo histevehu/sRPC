@@ -10,8 +10,9 @@ import top.histevehu.srpc.core.transport.netty.server.NettyServer;
  */
 public class TestNettyServer {
     public static void main(String[] args) {
-        HelloService helloService = new HelloServiceImpl();
+        HelloService helloService = new HelloServiceNettyImpl();
         TestCountAddService testCountAddService = new TestCountAddServiceImpl();
+
         NettyServer server = new NettyServer("127.0.0.1", 9001, CommonSerializer.KRYO_SERIALIZER);
         server.regService(helloService, HelloService.class);
         server.regService(testCountAddService, TestCountAddService.class);

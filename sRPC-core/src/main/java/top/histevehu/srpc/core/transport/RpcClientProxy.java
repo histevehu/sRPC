@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
+import top.histevehu.srpc.common.util.RpcMessageChecker;
 import top.histevehu.srpc.core.transport.netty.client.NettyClient;
 import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 
@@ -43,24 +44,23 @@ public class RpcClientProxy implements InvocationHandler {
                 .paramTypes(method.getParameterTypes())
                 .heartBeat(false)
                 .build();
-        return switch (client) {
+        RpcResponse rpcResponse = switch (client) {
             case NettyClient nc -> {
                 CompletableFuture<RpcResponse> completableFuture = nc.sendRequest(rpcRequest);
                 try {
-                    yield completableFuture.get().getData();
+                    yield completableFuture.get();
                 } catch (InterruptedException | ExecutionException e) {
                     logger.error("调用方法: {}#{} 发生错误：{}", method.getDeclaringClass().getName(), method.getName(), e.getMessage());
                     yield null;
                 }
             }
-            case SocketClient sc -> {
-                RpcResponse rpcResponse = (RpcResponse) sc.sendRequest(rpcRequest);
-                yield rpcResponse.getData();
-            }
+            case SocketClient sc -> sc.sendRequest(rpcRequest);
             default -> {
                 logger.error("Unsupported RPC Client: {}", client);
                 yield null;
             }
         };
+        RpcMessageChecker.check(rpcRequest, rpcResponse);
+        return rpcResponse != null ? rpcResponse.getData() : null;
     }
 }

@@ -8,6 +8,8 @@ import top.histevehu.srpc.common.enumeration.ResponseCode;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.util.RpcMessageChecker;
+import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
+import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
 import top.histevehu.srpc.core.registry.NacosServiceDiscovery;
 import top.histevehu.srpc.core.registry.ServiceDiscovery;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
@@ -33,16 +35,24 @@ public class SocketClient implements RpcClient {
     private final CommonSerializer serializer;
 
     public SocketClient() {
-        this(DEFAULT_SERIALIZER);
+        this(DEFAULT_SERIALIZER, new RoundRobinLoadBalancer());
+    }
+
+    public SocketClient(LoadBalancer loadBalancer) {
+        this(DEFAULT_SERIALIZER, loadBalancer);
     }
 
     public SocketClient(Integer serializer) {
-        this.serviceDiscovery = new NacosServiceDiscovery();
+        this(serializer, new RoundRobinLoadBalancer());
+    }
+
+    public SocketClient(Integer serializer, LoadBalancer loadBalancer) {
+        this.serviceDiscovery = new NacosServiceDiscovery(loadBalancer);
         this.serializer = CommonSerializer.getByCode(serializer);
     }
 
     @Override
-    public Object sendRequest(RpcRequest rpcRequest) {
+    public RpcResponse sendRequest(RpcRequest rpcRequest) {
         if (serializer == null) {
             logger.error("未设置序列化器");
             throw new RpcException(RpcError.SERIALIZER_NOT_FOUND);

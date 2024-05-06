@@ -5,13 +5,13 @@ import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
 
-public class HelloServiceImpl implements HelloService {
+public class HelloServiceNettyImpl implements HelloService {
 
-    private static final Logger logger = LoggerFactory.getLogger(HelloServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(HelloServiceNettyImpl.class);
 
     @Override
     public String hello(HelloObject object) {
         logger.info("接收到 helloObject：id={}, message={}", object.getId(), object.getMessage());
-        return "sRPC[" + Thread.currentThread().getId() + "]收到消息：id=" + object.getId() + ", message=" + object.getMessage();
+        return "sRPC-NettyServer[" + Thread.currentThread().getId() + "]收到消息：id=" + object.getId() + ", message=" + object.getMessage();
     }
 }

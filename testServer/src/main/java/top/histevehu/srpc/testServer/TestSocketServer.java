@@ -12,8 +12,9 @@ import top.histevehu.srpc.core.transport.socket.server.SocketServer;
 public class TestSocketServer {
 
     public static void main(String[] args) {
-        HelloService helloService = new HelloServiceImpl();
+        HelloService helloService = new HelloServiceSocketImpl();
         TestCountAddService testCountAddService = new TestCountAddServiceImpl();
+
         SocketServer socketServer = new SocketServer("127.0.0.1", 9000, CommonSerializer.KRYO_SERIALIZER);
         socketServer.regService(helloService, HelloService.class);
         socketServer.regService(testCountAddService, TestCountAddService.class);
