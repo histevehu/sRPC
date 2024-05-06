@@ -1,7 +1,7 @@
 language: java
 
 jdk:
-  - openjdk17
+  - openjdk21
 
 cache:
   directories:

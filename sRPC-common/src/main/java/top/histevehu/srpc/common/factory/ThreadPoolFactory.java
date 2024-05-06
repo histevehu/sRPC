@@ -78,10 +78,13 @@ public class ThreadPoolFactory {
             logger.info("关闭线程池 [{}] [{}]", entry.getKey(), executorService.isTerminated());
             try {
                 // 在线程池执行shutdown()后最多等待10s强制关闭
-                executorService.awaitTermination(10, TimeUnit.SECONDS);
+                if (!executorService.awaitTermination(10, TimeUnit.SECONDS)) {
+                    executorService.shutdownNow();
+                }
             } catch (InterruptedException ie) {
-                logger.error("关闭线程池失败！");
+                logger.error("关闭线程池{}时发生错误：{}", entry.getKey(), ie.getMessage());
                 executorService.shutdownNow();
+                Thread.currentThread().interrupt();
             }
         });
     }

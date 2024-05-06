@@ -77,8 +77,8 @@ public class NettyServer implements RpcServer {
                     // 表示系统用于临时存放已完成三次握手的请求的队列的最大长度
                     // 如果连接建立频繁，服务器处理创建新连接较慢，可以适当调大这个参数
                     .option(ChannelOption.SO_BACKLOG, 256)
-                    // 是否开启 TCP 底层心跳机制
-                    .childOption(ChannelOption.SO_KEEPALIVE, true)
+                    // 关闭TCP层的心跳探活，改用sRPC实现的应用层心跳探活
+                    .childOption(ChannelOption.SO_KEEPALIVE, false)
                     // 禁用Nagle算法（该算法的作用是尽可能的发送大数据快，减少网络传输），提高数据传输效率
                     .childOption(ChannelOption.TCP_NODELAY, true)
                     // 为worker线程组的SocketChannel添加处理器
@@ -86,17 +86,17 @@ public class NettyServer implements RpcServer {
                         @Override
                         protected void initChannel(SocketChannel ch) throws Exception {
                             ChannelPipeline pipeline = ch.pipeline();
+                            // ========== outBoundHandler部分 ==========
                             pipeline.addLast(new CommonEncoder(serializer))
+                                    // ========== inBoundHandler部分 ==========
+                                    // 服务端心跳检查，若30秒内该链上都没有读到数据，就会调用userEventTriggered方法
+                                    .addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS))
                                     .addLast(new CommonDecoder())
-                                    .addLast(new NettyServerHandler())
-                                    // 服务端心跳检查
-                                    // 若30秒内该链上都没有读到数据，就会调用userEventTriggered方法
-                                    .addLast(new IdleStateHandler(30, 0, 0, TimeUnit.SECONDS));
+                                    .addLast(new NettyServerHandler());
                         }
                     });
             ChannelFuture future = serverBootstrap.bind(port).sync();
             future.channel().closeFuture().sync();
-
         } catch (InterruptedException e) {
             logger.error("启动服务器时有错误发生: ", e);
         } finally {

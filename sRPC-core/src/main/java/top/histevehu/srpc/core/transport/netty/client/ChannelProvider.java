@@ -8,15 +8,15 @@ import io.netty.channel.socket.nio.NioSocketChannel;
 import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.histevehu.srpc.common.enumeration.RpcError;
-import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 
 import java.net.InetSocketAddress;
-import java.util.Date;
-import java.util.concurrent.CountDownLatch;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -27,57 +27,56 @@ public class ChannelProvider {
     private static final Logger logger = LoggerFactory.getLogger(ChannelProvider.class);
     private static final Bootstrap bootstrap = initializeBootstrap();
 
-    private static final int MAX_RETRY_COUNT = 5;
-    private static Channel channel = null;
+    private static Map<String, Channel> channels = new ConcurrentHashMap<>();
 
-    public static Channel get(InetSocketAddress inetSocketAddress, CommonSerializer serializer) {
+    public static Channel get(InetSocketAddress inetSocketAddress, CommonSerializer serializer) throws InterruptedException {
+        String key = inetSocketAddress.toString() + serializer.getCode();
+        if (channels.containsKey(key)) {
+            Channel channel = channels.get(key);
+            if (channels != null && channel.isActive()) {
+                return channel;
+            } else {
+                if (channels != null) {
+                    channels.remove(key);
+                }
+            }
+        }
         bootstrap.handler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) {
+                // ========== outBoundHandler部分 ==========
+                // outboundHandler必须放在最后一个inboundHandler之前,否则无法传到outboundHandler
                 // 自定义序列化编解码器：rpcResponse -> ByteBuf
                 ch.pipeline().addLast(new CommonEncoder(serializer))
+                        // ========== inBoundHandler部分 ==========
+                        // 客户端心跳检查，若5秒内都没有往该链上写入数据，就会调用userEventTriggered方法
+                        .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
                         .addLast(new CommonDecoder())
-                        .addLast(new NettyClientHandler())
-                        // 客户端心跳检查
-                        // 若5秒内都没有往该链上写入数据，就会调用userEventTriggered方法
-                        .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS));
+                        .addLast(new NettyClientHandler());
             }
         });
-        CountDownLatch countDownLatch = new CountDownLatch(1);
+        Channel channel;
         try {
-            connect(bootstrap, inetSocketAddress, countDownLatch);
-            countDownLatch.await();
-        } catch (InterruptedException e) {
-            logger.error("获取channel时有错误发生:", e);
+            channel = connect(bootstrap, inetSocketAddress);
+        } catch (ExecutionException e) {
+            logger.error("连接客户端时有错误发生", e);
+            return null;
         }
+        channels.put(key, channel);
         return channel;
     }
 
-    private static void connect(Bootstrap bootstrap, InetSocketAddress inetSocketAddress, CountDownLatch countDownLatch) {
-        connect(bootstrap, inetSocketAddress, MAX_RETRY_COUNT, countDownLatch);
-    }
-
-    private static void connect(Bootstrap bootstrap, InetSocketAddress inetSocketAddress, int retry, CountDownLatch countDownLatch) {
+    private static Channel connect(Bootstrap bootstrap, InetSocketAddress inetSocketAddress) throws ExecutionException, InterruptedException {
+        CompletableFuture<Channel> completableFuture = new CompletableFuture<>();
         bootstrap.connect(inetSocketAddress).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
                 logger.info("客户端连接成功!");
-                channel = future.channel();
-                countDownLatch.countDown();
-                return;
+                completableFuture.complete(future.channel());
+            } else {
+                throw new IllegalStateException();
             }
-            if (retry == 0) {
-                logger.error("客户端连接失败:重试次数已用完，放弃连接！");
-                countDownLatch.countDown();
-                throw new RpcException(RpcError.CLIENT_CONNECT_SERVER_FAILURE);
-            }
-            // 第几次重连
-            int order = (MAX_RETRY_COUNT - retry) + 1;
-            // 本次重连的间隔，每次重试时间为上一次的两倍
-            int delay = 1 << order;
-            logger.error("{}: 连接失败，第 {} 次重连……", new Date(), order);
-            bootstrap.config().group().schedule(() -> connect(bootstrap, inetSocketAddress, retry - 1, countDownLatch), delay, TimeUnit
-                    .SECONDS);
         });
+        return completableFuture.get();
     }
 
     private static Bootstrap initializeBootstrap() {
@@ -87,9 +86,9 @@ public class ChannelProvider {
                 .channel(NioSocketChannel.class)
                 // 连接的超时时间，超过这个时间还是建立不上的话则代表连接失败
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                // 是否开启 TCP 底层心跳机制
-                .option(ChannelOption.SO_KEEPALIVE, true)
-                // TCP默认开启了 Nagle 算法，该算法的作用是尽可能的发送大数据快，减少网络传输。TCP_NODELAY 参数的作用就是控制是否启用 Nagle 算法。
+                // 关闭TCP层的心跳探活，改用sRPC实现的应用层心跳探活
+                .option(ChannelOption.SO_KEEPALIVE, false)
+                // 禁用Nagle算法（该算法的作用是尽可能的发送大数据快，减少网络传输），提高数据传输效率
                 .option(ChannelOption.TCP_NODELAY, true);
         return bootstrap;
     }

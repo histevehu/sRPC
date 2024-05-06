@@ -3,11 +3,16 @@ package top.histevehu.srpc.core.transport;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
+import top.histevehu.srpc.common.entity.RpcResponse;
+import top.histevehu.srpc.core.transport.netty.client.NettyClient;
+import top.histevehu.srpc.core.transport.socket.client.SocketClient;
 
 import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
 import java.lang.reflect.Proxy;
 import java.util.UUID;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutionException;
 
 /**
  * sRPC客户端动态代理
@@ -16,10 +21,10 @@ public class RpcClientProxy implements InvocationHandler {
 
     private static final Logger logger = LoggerFactory.getLogger(RpcClientProxy.class);
 
-    private final RpcClient rpcClient;
+    private final RpcClient client;
 
     public RpcClientProxy(RpcClient rpcClient) {
-        this.rpcClient = rpcClient;
+        this.client = rpcClient;
     }
 
     @SuppressWarnings("unchecked")
@@ -38,6 +43,24 @@ public class RpcClientProxy implements InvocationHandler {
                 .paramTypes(method.getParameterTypes())
                 .heartBeat(false)
                 .build();
-        return rpcClient.sendRequest(rpcRequest);
+        return switch (client) {
+            case NettyClient nc -> {
+                CompletableFuture<RpcResponse> completableFuture = nc.sendRequest(rpcRequest);
+                try {
+                    yield completableFuture.get().getData();
+                } catch (InterruptedException | ExecutionException e) {
+                    logger.error("调用方法: {}#{} 发生错误：{}", method.getDeclaringClass().getName(), method.getName(), e.getMessage());
+                    yield null;
+                }
+            }
+            case SocketClient sc -> {
+                RpcResponse rpcResponse = (RpcResponse) sc.sendRequest(rpcRequest);
+                yield rpcResponse.getData();
+            }
+            default -> {
+                logger.error("Unsupported RPC Client: {}", client);
+                yield null;
+            }
+        };
     }
 }

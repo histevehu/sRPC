@@ -1,9 +1,9 @@
 package top.histevehu.srpc.core.transport.netty.server;
 
-import io.netty.channel.ChannelFuture;
-import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
+import io.netty.handler.timeout.IdleState;
+import io.netty.handler.timeout.IdleStateEvent;
 import io.netty.util.ReferenceCountUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -12,6 +12,7 @@ import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.common.factory.ThreadPoolFactory;
 import top.histevehu.srpc.core.handler.RequestHandler;
 
+import java.net.SocketException;
 import java.util.concurrent.ExecutorService;
 
 
@@ -40,10 +41,11 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                 }
                 logger.info("sRPC服务器接收到请求: {}", msg);
                 Object result = requestHandler.handle(msg);
-                ChannelFuture future = ctx.writeAndFlush(RpcResponse.success(result, msg.getRequestId()));
-                // 给发送操作添加一个监听器，当发送完成后（无论是否发生异常）关闭通道。
-                future.addListener(ChannelFutureListener.CLOSE);
-                future.addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                if (ctx.channel().isActive() && ctx.channel().isWritable()) {
+                    ctx.writeAndFlush(RpcResponse.success(result, msg.getRequestId()));
+                } else {
+                    logger.error("通道不可写");
+                }
             } finally {
                 // InBound里读取的ByteBuf要手动释放引用计数，避免内存泄漏
                 ReferenceCountUtil.release(msg);
@@ -52,10 +54,29 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
     }
 
     @Override
-    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("处理过程调用时有错误发生:");
-        cause.printStackTrace();
+    public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) {
+        switch (cause) {
+            case SocketException se -> {
+                logger.error("与客户端{}连接发生错误：{}", ctx.channel().remoteAddress(), cause.getMessage());
+            }
+            default -> {
+                logger.error("处理过程调用时有错误发生：{}", cause.getMessage());
+            }
+        }
         ctx.close();
+    }
+
+    @Override
+    public void userEventTriggered(ChannelHandlerContext ctx, Object evt) throws Exception {
+        if (evt instanceof IdleStateEvent) {
+            IdleState state = ((IdleStateEvent) evt).state();
+            if (state == IdleState.READER_IDLE) {
+                logger.info("长时间未收到客户端{}心跳包，断开连接", ctx.channel().remoteAddress());
+                ctx.close();
+            }
+        } else {
+            super.userEventTriggered(ctx, evt);
+        }
     }
 
 }
