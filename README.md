@@ -27,8 +27,6 @@ sRPC, a RPC framework made by Steve.
 
 调用及其结果的传输采用了SRTP协议（sRPC Transport Protocol）
 
-调用参数与返回值的传输采用了如下 MRF 协议（ My-RPC-Framework 首字母）以防止粘包：
-
 ```
 +---------------+---------------+-----------------+-------------+
 |  Magic Number |  Package Type | Serializer Type | Data Length |
