@@ -5,7 +5,7 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
-import top.histevehu.srpc.common.enumeration.SerializerCode;
+import top.histevehu.srpc.common.enumeration.SerializerType;
 import top.histevehu.srpc.common.exception.SerializeException;
 
 import java.io.IOException;
@@ -66,7 +66,7 @@ public class JsonSerializer implements CommonSerializer {
 
     @Override
     public int getCode() {
-        return SerializerCode.valueOf("JSON").getCode();
+        return SerializerType.valueOf("JSON").getCode();
     }
 
 }

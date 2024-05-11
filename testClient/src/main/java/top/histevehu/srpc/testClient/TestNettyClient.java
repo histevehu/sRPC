@@ -1,10 +1,9 @@
 package top.histevehu.srpc.testClient;
 
-import top.histevehu.srpc.api.HelloObject;
-import top.histevehu.srpc.api.HelloService;
-import top.histevehu.srpc.api.TestCountAddObject;
-import top.histevehu.srpc.api.TestCountAddService;
-import top.histevehu.srpc.core.serializer.CommonSerializer;
+import top.histevehu.srpc.api.manyServices.ServiceA;
+import top.histevehu.srpc.api.manyServices.ServiceB;
+import top.histevehu.srpc.api.manyServices.ServiceC;
+import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.core.transport.RpcClient;
 import top.histevehu.srpc.core.transport.RpcClientProxy;
 import top.histevehu.srpc.core.transport.netty.client.NettyClient;
@@ -14,21 +13,41 @@ import top.histevehu.srpc.core.transport.netty.client.NettyClient;
  */
 public class TestNettyClient {
     public static void main(String[] args) {
-        RpcClient client = new NettyClient(CommonSerializer.KRYO_SERIALIZER);
-        RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
+        RpcClient client = new NettyClient();
+        RpcServiceProperties serviceProperties = new RpcServiceProperties();
+        RpcClientProxy clientProxy = new RpcClientProxy(client, serviceProperties);
 
-        HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
-        for (int i = 0; i < 20; i++) {
-            HelloObject object = new HelloObject(i, "Hello World!");
-            String res = helloService.hello(object);
-            System.out.println(res);
-        }
+        ServiceA serviceA = clientProxy.getProxy(ServiceA.class);
+        ServiceB serviceB = clientProxy.getProxy(ServiceB.class);
+        ServiceC serviceC = clientProxy.getProxy(ServiceC.class);
 
-        TestCountAddService testCountAddService = rpcClientProxy.getProxy(TestCountAddService.class);
-        for (int i = 0; i < 20; i++) {
-            TestCountAddObject testCountAddObject = new TestCountAddObject(i, 1);
-            String res = testCountAddService.countAdd(testCountAddObject);
-            System.out.println(res);
-        }
+        // 测试默认组
+        System.out.println("========== 测试默认服务组 ==========");
+        System.out.println(serviceA.hello());
+        // 测试G1
+        System.out.println("========== 测试服务组G1 ==========");
+        serviceProperties.setGroup("G1");
+        serviceProperties.setVersion("1.0");
+        System.out.println(serviceA.hello());
+        System.out.println(serviceC.hello());
+        serviceProperties.setVersion("2.0");
+        System.out.println(serviceA.hello());
+        System.out.println(serviceC.hello());
+        // 测试G2
+        System.out.println("========== 测试服务组G2 ==========");
+        serviceProperties.setGroup("G2");
+        serviceProperties.setVersion("1.0");
+        System.out.println(serviceA.hello());
+        System.out.println(serviceB.bye());
+        // System.out.println(serviceC.hello());
+        serviceProperties.setVersion("2.0");
+        System.out.println(serviceA.hello());
+        System.out.println(serviceB.bye());
+        // 测试G3
+        System.out.println("========== 测试服务组G3 ==========");
+        serviceProperties.setGroup("G3");
+        serviceProperties.setVersion("1.0");
+        System.out.println(serviceB.bye());
+        System.out.println(serviceC.hello());
     }
 }

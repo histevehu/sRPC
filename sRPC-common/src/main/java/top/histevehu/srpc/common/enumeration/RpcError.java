@@ -16,6 +16,7 @@ public enum RpcError {
     SERVICE_CAN_NOT_BE_NULL("注册的服务不得为空"),
     SERVICE_NOT_FOUND("找不到对应的服务"),
     SERVICE_NOT_IMPLEMENT_ANY_INTERFACE("注册的服务未实现任何接口"),
+    SERVICE_EXISTED("当前服务组内服务接口下已经注册有相同版本的服务实现"),
 
     UNKNOWN_PROTOCOL("不识别的协议包"),
     UNKNOWN_SERIALIZER("不识别的(反)序列化器"),

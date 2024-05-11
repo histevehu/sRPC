@@ -5,8 +5,6 @@ import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.factory.ThreadPoolFactory;
 import top.histevehu.srpc.core.handler.RequestHandler;
 import top.histevehu.srpc.core.hook.ShutdownHook;
-import top.histevehu.srpc.core.provider.ServiceProviderImpl;
-import top.histevehu.srpc.core.registry.NacosServiceRegistry;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.AbstractRpcServer;
 
@@ -23,7 +21,7 @@ public class SocketServer extends AbstractRpcServer {
 
     private final ExecutorService threadPool;
     private final CommonSerializer serializer;
-    private final RequestHandler requestHandler = new RequestHandler();
+    private final RequestHandler requestHandler;
 
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
@@ -35,9 +33,8 @@ public class SocketServer extends AbstractRpcServer {
         this.host = host;
         this.port = port;
         this.threadPool = ThreadPoolFactory.createDefaultThreadPool("socket-rpc-server");
-        this.serviceRegistry = new NacosServiceRegistry();
-        this.serviceProvider = new ServiceProviderImpl();
         this.serializer = CommonSerializer.getByCode(serializer);
+        this.requestHandler = new RequestHandler();
         scanServices();
     }
 

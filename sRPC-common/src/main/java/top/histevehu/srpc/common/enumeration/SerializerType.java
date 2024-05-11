@@ -8,7 +8,9 @@ import lombok.Getter;
  */
 @AllArgsConstructor
 @Getter
-public enum SerializerCode {
+public enum SerializerType {
+
+    DEFAULT(0),
 
     KRYO(0),
     JSON(1),

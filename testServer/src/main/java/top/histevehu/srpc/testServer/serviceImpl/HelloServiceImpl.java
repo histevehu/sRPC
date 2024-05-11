@@ -1,12 +1,11 @@
-package top.histevehu.srpc.testServer;
+package top.histevehu.srpc.testServer.serviceImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.api.HelloObject;
 import top.histevehu.srpc.api.HelloService;
-import top.histevehu.srpc.core.annotation.SrpcService;
 
-@SrpcService
+// @SrpcService
 public class HelloServiceImpl implements HelloService {
 
     private static final Logger logger = LoggerFactory.getLogger(HelloServiceImpl.class);

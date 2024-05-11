@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -13,6 +14,9 @@ import java.io.Serializable;
 @AllArgsConstructor
 @NoArgsConstructor
 public class TestCountAddObject implements Serializable {
+
+    @Serial
+    private static final long serialVersionUID = -1057311712191051644L;
 
     private Integer num;
     private Integer offset;

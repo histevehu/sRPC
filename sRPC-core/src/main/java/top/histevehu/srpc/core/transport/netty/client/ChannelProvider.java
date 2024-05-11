@@ -1,23 +1,20 @@
 package top.histevehu.srpc.core.transport.netty.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.*;
+import io.netty.channel.Channel;
+import io.netty.channel.ChannelFutureListener;
+import io.netty.channel.ChannelOption;
+import io.netty.channel.EventLoopGroup;
 import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
-import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.histevehu.srpc.core.codec.CommonDecoder;
-import top.histevehu.srpc.core.codec.CommonEncoder;
-import top.histevehu.srpc.core.serializer.CommonSerializer;
 
 import java.net.InetSocketAddress;
 import java.util.Map;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 
 /**
  * 用于获取 Netty Channel 对象
@@ -25,52 +22,39 @@ import java.util.concurrent.TimeUnit;
 public class ChannelProvider {
 
     private static final Logger logger = LoggerFactory.getLogger(ChannelProvider.class);
-    private static final Bootstrap bootstrap = initializeBootstrap();
 
-    private static Map<String, Channel> channels = new ConcurrentHashMap<>();
+    private static final Map<String, Channel> channels = new ConcurrentHashMap<>();
 
-    public static Channel get(InetSocketAddress inetSocketAddress, CommonSerializer serializer) throws InterruptedException {
-        String key = inetSocketAddress.toString() + serializer.getCode();
-        if (channels.containsKey(key)) {
-            Channel channel = channels.get(key);
-            if (channels != null && channel.isActive()) {
-                return channel;
-            } else {
-                if (channels != null) {
+    public static Channel get(InetSocketAddress inetSocketAddress, Bootstrap bootstrap) throws InterruptedException {
+        String key = inetSocketAddress.toString();
+        Channel newChannel;
+        synchronized (ChannelProvider.class) {
+            if (channels.containsKey(key)) {
+                Channel channel = channels.get(key);
+                if (channel.isActive()) {
+                    return channel;
+                } else {
+                    channel.close();
                     channels.remove(key);
                 }
             }
-        }
-        bootstrap.handler(new ChannelInitializer<SocketChannel>() {
-            @Override
-            protected void initChannel(SocketChannel ch) {
-                // ========== outBoundHandler部分 ==========
-                // outboundHandler必须放在最后一个inboundHandler之前,否则无法传到outboundHandler
-                // 自定义序列化编解码器：rpcResponse -> ByteBuf
-                ch.pipeline().addLast(new CommonEncoder(serializer))
-                        // ========== inBoundHandler部分 ==========
-                        // 客户端心跳检查，若5秒内都没有往该链上写入数据，就会调用userEventTriggered方法
-                        .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
-                        .addLast(new CommonDecoder())
-                        .addLast(new NettyClientHandler());
+            // 如channel不存在或者未处于active状态，建立新的channel
+            try {
+                newChannel = connect(inetSocketAddress, bootstrap);
+            } catch (ExecutionException e) {
+                logger.error("连接客户端时有错误发生", e);
+                return null;
             }
-        });
-        Channel channel;
-        try {
-            channel = connect(bootstrap, inetSocketAddress);
-        } catch (ExecutionException e) {
-            logger.error("连接客户端时有错误发生", e);
-            return null;
+            channels.put(key, newChannel);
         }
-        channels.put(key, channel);
-        return channel;
+        return newChannel;
     }
 
-    private static Channel connect(Bootstrap bootstrap, InetSocketAddress inetSocketAddress) throws ExecutionException, InterruptedException {
+    private static Channel connect(InetSocketAddress inetSocketAddress, Bootstrap bootstrap) throws ExecutionException, InterruptedException {
         CompletableFuture<Channel> completableFuture = new CompletableFuture<>();
         bootstrap.connect(inetSocketAddress).addListener((ChannelFutureListener) future -> {
             if (future.isSuccess()) {
-                logger.info("客户端连接成功!");
+                logger.info("客户端连接{}成功", inetSocketAddress.toString());
                 completableFuture.complete(future.channel());
             } else {
                 throw new IllegalStateException();

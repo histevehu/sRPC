@@ -15,13 +15,20 @@ import top.histevehu.srpc.core.serializer.CommonSerializer;
 import java.util.List;
 
 /**
- * 通用的解码拦截器
+ * 通用的解码拦截器，负责处理"入站"消息，将消息格式转换为我们需要的业务对象
  */
 public class CommonDecoder extends ReplayingDecoder {
 
     private static final Logger logger = LoggerFactory.getLogger(CommonDecoder.class);
     private static final int MAGIC_NUMBER = 0x981017;
 
+    /**
+     * 解码 ByteBuf 对象
+     *
+     * @param ctx 解码器关联的 ChannelHandlerContext 对象
+     * @param in  "入站"数据，也就是 ByteBuf 对象
+     * @param out 解码之后的数据对象需要添加到 out 对象里面
+     */
     @Override
     protected void decode(ChannelHandlerContext ctx, ByteBuf in, List<Object> out) throws Exception {
         int magic = in.readInt();

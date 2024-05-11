@@ -4,7 +4,7 @@ import io.protostuff.LinkedBuffer;
 import io.protostuff.ProtostuffIOUtil;
 import io.protostuff.Schema;
 import io.protostuff.runtime.RuntimeSchema;
-import top.histevehu.srpc.common.enumeration.SerializerCode;
+import top.histevehu.srpc.common.enumeration.SerializerType;
 
 import java.util.Map;
 import java.util.Objects;
@@ -41,7 +41,7 @@ public class ProtobufSerializer implements CommonSerializer {
 
     @Override
     public int getCode() {
-        return SerializerCode.valueOf("PROTOBUF").getCode();
+        return SerializerType.valueOf("PROTOBUF").getCode();
     }
 
     private Schema getSchema(Class clazz) {

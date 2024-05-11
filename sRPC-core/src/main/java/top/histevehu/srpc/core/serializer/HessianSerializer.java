@@ -4,7 +4,7 @@ import com.caucho.hessian.io.HessianInput;
 import com.caucho.hessian.io.HessianOutput;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import top.histevehu.srpc.common.enumeration.SerializerCode;
+import top.histevehu.srpc.common.enumeration.SerializerType;
 import top.histevehu.srpc.common.exception.SerializeException;
 
 import java.io.ByteArrayInputStream;
@@ -55,6 +55,6 @@ public class HessianSerializer implements CommonSerializer {
 
     @Override
     public int getCode() {
-        return SerializerCode.valueOf("HESSIAN").getCode();
+        return SerializerType.valueOf("HESSIAN").getCode();
     }
 }

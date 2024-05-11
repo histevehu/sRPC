@@ -1,12 +1,11 @@
-package top.histevehu.srpc.testServer;
+package top.histevehu.srpc.testServer.serviceImpl;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.api.TestCountAddObject;
 import top.histevehu.srpc.api.TestCountAddService;
-import top.histevehu.srpc.core.annotation.SrpcService;
 
-@SrpcService
+// @SrpcService
 public class TestCountAddServiceImpl implements TestCountAddService {
 
     private static final Logger logger = LoggerFactory.getLogger(TestCountAddServiceImpl.class);

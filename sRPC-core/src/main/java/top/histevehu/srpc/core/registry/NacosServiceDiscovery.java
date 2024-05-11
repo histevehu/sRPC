@@ -28,11 +28,11 @@ public class NacosServiceDiscovery implements ServiceDiscovery {
     }
 
     @Override
-    public InetSocketAddress lookupService(String serviceName) {
+    public InetSocketAddress lookupService(String serviceFullName) {
         try {
-            List<Instance> instances = NacosUtil.getAllInstance(serviceName);
+            List<Instance> instances = NacosUtil.getAllInstance(serviceFullName);
             if (instances.isEmpty()) {
-                logger.error("找不到对应的服务: {}", serviceName);
+                logger.error("找不到对应的服务: {}", serviceFullName);
                 throw new RpcException(RpcError.SERVICE_NOT_FOUND);
             }
             Instance instance = loadBalancer.select(instances);

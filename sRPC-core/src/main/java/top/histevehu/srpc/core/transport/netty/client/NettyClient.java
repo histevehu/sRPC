@@ -1,18 +1,22 @@
 package top.histevehu.srpc.core.transport.netty.client;
 
 import io.netty.bootstrap.Bootstrap;
-import io.netty.channel.Channel;
-import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.EventLoopGroup;
+import io.netty.channel.*;
 import io.netty.channel.nio.NioEventLoopGroup;
+import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioSocketChannel;
+import io.netty.handler.timeout.IdleStateHandler;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
+import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.enumeration.RpcError;
+import top.histevehu.srpc.common.enumeration.SerializerType;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.factory.SingletonFactory;
+import top.histevehu.srpc.core.codec.CommonDecoder;
+import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
 import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
 import top.histevehu.srpc.core.registry.NacosServiceDiscovery;
@@ -22,6 +26,7 @@ import top.histevehu.srpc.core.transport.RpcClient;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
 
 /**
  * sRPC 基于Netty的客户端
@@ -29,56 +34,70 @@ import java.util.concurrent.CompletableFuture;
 public class NettyClient implements RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
-    private static final EventLoopGroup group;
-    private static final Bootstrap bootstrap;
+    private final EventLoopGroup eventLoopGroup;
+    private final Bootstrap bootstrap;
     private final ServiceDiscovery serviceDiscovery;
     private final CommonSerializer serializer;
 
     private final UnprocessedRequests unprocessedRequests;
 
     public NettyClient() {
-        this(DEFAULT_SERIALIZER, new RoundRobinLoadBalancer());
+        this(SerializerType.DEFAULT, new RoundRobinLoadBalancer());
     }
 
     public NettyClient(LoadBalancer loadBalancer) {
-        this(DEFAULT_SERIALIZER, loadBalancer);
+        this(SerializerType.DEFAULT, loadBalancer);
     }
 
-    public NettyClient(Integer serializer) {
-        this(serializer, new RoundRobinLoadBalancer());
+    public NettyClient(SerializerType serializerType) {
+        this(serializerType, new RoundRobinLoadBalancer());
     }
 
-    public NettyClient(Integer serializer, LoadBalancer loadBalancer) {
+    public NettyClient(SerializerType serializerType, LoadBalancer loadBalancer) {
+        this.eventLoopGroup = new NioEventLoopGroup();
+        this.bootstrap = new Bootstrap();
         this.serviceDiscovery = new NacosServiceDiscovery(loadBalancer);
-        this.serializer = CommonSerializer.getByCode(serializer);
+        this.serializer = CommonSerializer.getByCode(serializerType.getCode());
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
-    }
-
-    static {
-        group = new NioEventLoopGroup();
-        bootstrap = new Bootstrap();
-        bootstrap.group(group)
-                .channel(NioSocketChannel.class);
+        bootstrap.group(eventLoopGroup)
+                .channel(NioSocketChannel.class)
+                // .handler(new LoggingHandler(LogLevel.INFO))
+                // 连接的超时期限。
+                // 如果超过此时间或无法建立连接，则连接将失败
+                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
+                .handler(new ChannelInitializer<SocketChannel>() {
+                    @Override
+                    protected void initChannel(SocketChannel ch) {
+                        // ========== outBoundHandler部分 ==========
+                        // outboundHandler必须放在最后一个inboundHandler之前,否则无法传到outboundHandler
+                        // RpcResponse -> ByteBuf
+                        ch.pipeline().addLast(new CommonEncoder(serializer))
+                                // ========== inBoundHandler部分 ==========
+                                // 客户端心跳检查，若5秒内都没有往该链上写入数据，就会调用userEventTriggered方法
+                                .addLast(new IdleStateHandler(0, 5, 0, TimeUnit.SECONDS))
+                                // ByteBuf -> RpcRequest
+                                .addLast(new CommonDecoder())
+                                .addLast(new NettyClientHandler(bootstrap));
+                    }
+                });
     }
 
     /**
      * 发送请求
      *
      * @param rpcRequest 请求体对象
-     * @return 响应结果(协变式返回)
+     * @return 响应结果
      */
     @Override
-    public CompletableFuture<RpcResponse> sendRequest(RpcRequest rpcRequest) {
-        if (serializer == null) {
-            logger.error("未设置序列化器");
-            throw new RpcException(RpcError.SERIALIZER_NOT_FOUND);
-        }
-        CompletableFuture<RpcResponse> resultFuture = new CompletableFuture<>();
+    public CompletableFuture<RpcResponse<Object>> sendRequest(RpcRequest rpcRequest) {
+        CompletableFuture<RpcResponse<Object>> resultFuture = new CompletableFuture<>();
+        String serviceFullName = RpcServiceProperties.builder().serviceName(rpcRequest.getInterfaceName())
+                .group(rpcRequest.getGroup()).version(rpcRequest.getVersion()).build().toRpcServiceFullName();
         try {
-            InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest.getInterfaceName());
-            Channel channel = ChannelProvider.get(inetSocketAddress, serializer);
+            InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(serviceFullName);
+            Channel channel = ChannelProvider.get(inetSocketAddress, bootstrap);
             if (channel != null && !channel.isActive()) {
-                group.shutdownGracefully();
+                eventLoopGroup.shutdownGracefully();
                 throw new RpcException(RpcError.CLIENT_CONNECT_SERVER_FAILURE);
             }
             unprocessedRequests.put(rpcRequest.getRequestId(), resultFuture);

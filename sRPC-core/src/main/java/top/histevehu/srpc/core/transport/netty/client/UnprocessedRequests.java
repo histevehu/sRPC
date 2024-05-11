@@ -10,9 +10,9 @@ import java.util.concurrent.ConcurrentHashMap;
  */
 public class UnprocessedRequests {
 
-    private static ConcurrentHashMap<String, CompletableFuture<RpcResponse>> unprocessedResponseFutures = new ConcurrentHashMap<>();
+    private static final ConcurrentHashMap<String, CompletableFuture<RpcResponse<Object>>> unprocessedResponseFutures = new ConcurrentHashMap<>();
 
-    public void put(String requestId, CompletableFuture<RpcResponse> future) {
+    public void put(String requestId, CompletableFuture<RpcResponse<Object>> future) {
         unprocessedResponseFutures.put(requestId, future);
     }
 
@@ -20,8 +20,8 @@ public class UnprocessedRequests {
         unprocessedResponseFutures.remove(requestId);
     }
 
-    public void complete(RpcResponse rpcResponse) {
-        CompletableFuture<RpcResponse> future = unprocessedResponseFutures.remove(rpcResponse.getRequestId());
+    public void complete(RpcResponse<Object> rpcResponse) {
+        CompletableFuture<RpcResponse<Object>> future = unprocessedResponseFutures.remove(rpcResponse.getRequestId());
         if (null != future) {
             future.complete(rpcResponse);
         } else {

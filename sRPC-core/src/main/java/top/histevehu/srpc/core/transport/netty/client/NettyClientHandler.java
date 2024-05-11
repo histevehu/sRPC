@@ -1,5 +1,6 @@
 package top.histevehu.srpc.core.transport.netty.client;
 
+import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
@@ -12,21 +13,23 @@ import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
 import top.histevehu.srpc.common.factory.SingletonFactory;
-import top.histevehu.srpc.core.serializer.CommonSerializer;
 
 import java.net.InetSocketAddress;
 
 /**
  * sRPC 基于Netty的客户端侧处理器
  */
-public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse> {
+public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse<Object>> {
 
     private static final Logger logger = LoggerFactory.getLogger(NettyClientHandler.class);
 
     private final UnprocessedRequests unprocessedRequests;
 
-    public NettyClientHandler() {
+    private final Bootstrap bootstrap;
+
+    public NettyClientHandler(Bootstrap bootstrap) {
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
+        this.bootstrap = bootstrap;
     }
 
     @Override
@@ -41,8 +44,10 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse>
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, Throwable cause) throws Exception {
-        logger.error("过程调用时有错误发生:");
-        cause.printStackTrace();
+        logger.error("过程调用时有错误发生：{}", cause.getMessage());
+        for (StackTraceElement st : cause.getStackTrace()) {
+            logger.error(st.toString());
+        }
         ctx.close();
     }
 
@@ -53,10 +58,12 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse>
             IdleState state = ((IdleStateEvent) evt).state();
             if (state == IdleState.WRITER_IDLE) {
                 logger.info("发送心跳包 [{}]", ctx.channel().remoteAddress());
-                Channel channel = ChannelProvider.get((InetSocketAddress) ctx.channel().remoteAddress(), CommonSerializer.getByCode(CommonSerializer.DEFAULT_SERIALIZER));
+                Channel channel = ChannelProvider.get((InetSocketAddress) ctx.channel().remoteAddress(), bootstrap);
                 RpcRequest rpcRequest = new RpcRequest();
                 rpcRequest.setHeartBeat(true);
-                channel.writeAndFlush(rpcRequest).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                if (channel != null) {
+                    channel.writeAndFlush(rpcRequest).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                }
             }
         } else {
             super.userEventTriggered(ctx, evt);

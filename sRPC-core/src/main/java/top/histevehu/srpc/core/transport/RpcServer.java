@@ -1,5 +1,6 @@
 package top.histevehu.srpc.core.transport;
 
+import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 
 /**
@@ -20,11 +21,12 @@ public interface RpcServer {
     void start();
 
     /**
-     * 注册服务。包括向本地服务注册表和注册中心注册
+     * 注册服务
      *
-     * @param service
      * @param serviceClass
+     * @param service
+     * @param serviceProperties
      */
-    <T> void regService(T service, String serviceName);
+    <T> void regService(T service, RpcServiceProperties serviceProperties);
 
 }

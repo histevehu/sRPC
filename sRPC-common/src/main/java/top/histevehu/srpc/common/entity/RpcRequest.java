@@ -5,6 +5,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.io.Serial;
 import java.io.Serializable;
 
 /**
@@ -17,18 +18,21 @@ import java.io.Serializable;
 
 public class RpcRequest implements Serializable {
 
+    @Serial
+    private static final long serialVersionUID = -2994361704629359757L;
+
     /**
      * 请求号
      */
     private String requestId;
 
     /**
-     * 待调用接口名称
+     * 调用接口名称
      */
     private String interfaceName;
 
     /**
-     * 待调用方法名称
+     * 调用方法名称
      */
     private String methodName;
 
@@ -46,5 +50,15 @@ public class RpcRequest implements Serializable {
      * 是否是心跳包
      */
     private Boolean heartBeat;
+
+    /**
+     * 服务所属组名
+     */
+    private String group;
+
+    /**
+     * 服务版本
+     */
+    private String version;
 
 }

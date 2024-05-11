@@ -2,7 +2,6 @@ package top.histevehu.srpc.testServer;
 
 
 import top.histevehu.srpc.core.annotation.SrpcServiceScan;
-import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.socket.server.SocketServer;
 
 /**
@@ -12,7 +11,7 @@ import top.histevehu.srpc.core.transport.socket.server.SocketServer;
 public class TestSocketServer {
 
     public static void main(String[] args) {
-        SocketServer socketServer = new SocketServer("127.0.0.1", 9000, CommonSerializer.KRYO_SERIALIZER);
+        SocketServer socketServer = new SocketServer("127.0.0.1", 9000);
         socketServer.start();
     }
 

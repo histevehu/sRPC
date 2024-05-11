@@ -11,8 +11,6 @@ import io.netty.handler.timeout.IdleStateHandler;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.hook.ShutdownHook;
-import top.histevehu.srpc.core.provider.ServiceProviderImpl;
-import top.histevehu.srpc.core.registry.NacosServiceRegistry;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.AbstractRpcServer;
 
@@ -32,8 +30,6 @@ public class NettyServer extends AbstractRpcServer {
     public NettyServer(String host, int port, Integer serializer) {
         this.host = host;
         this.port = port;
-        this.serviceRegistry = new NacosServiceRegistry();
-        this.serviceProvider = new ServiceProviderImpl();
         this.serializer = CommonSerializer.getByCode(serializer);
         scanServices();
     }
