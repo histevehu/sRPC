@@ -5,13 +5,13 @@ import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.factory.SingletonFactory;
 import top.histevehu.srpc.common.util.ReflectUtil;
 import top.histevehu.srpc.core.annotation.SrpcService;
 import top.histevehu.srpc.core.annotation.SrpcServiceScan;
 import top.histevehu.srpc.core.provider.ServiceProvider;
 import top.histevehu.srpc.core.provider.ServiceProviderImpl;
-import top.histevehu.srpc.core.registry.NacosServiceRegistry;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
 
 import java.net.InetAddress;
@@ -23,7 +23,7 @@ public abstract class AbstractRpcServer implements RpcServer {
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
 
-    protected static ServiceRegistry serviceRegistry = SingletonFactory.getInstance(NacosServiceRegistry.class);
+    protected static ServiceRegistry serviceRegistry = ExtensionLoader.getExtensionLoader(ServiceRegistry.class).getExtension("Nacos");
     protected static ServiceProvider serviceProvider = SingletonFactory.getInstance(ServiceProviderImpl.class);
 
     /**

@@ -8,10 +8,10 @@ import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.enumeration.ResponseCode;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.util.RpcMessageChecker;
 import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
 import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
-import top.histevehu.srpc.core.registry.NacosServiceDiscovery;
 import top.histevehu.srpc.core.registry.ServiceDiscovery;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
@@ -31,7 +31,7 @@ public class SocketClient implements RpcClient {
 
     private static final Logger logger = LoggerFactory.getLogger(SocketClient.class);
 
-    private final ServiceDiscovery serviceDiscovery;
+    private final ServiceDiscovery serviceDiscovery = ExtensionLoader.getExtensionLoader(ServiceDiscovery.class).getExtension("Nacos");
 
     private final CommonSerializer serializer;
 
@@ -48,7 +48,7 @@ public class SocketClient implements RpcClient {
     }
 
     public SocketClient(Integer serializer, LoadBalancer loadBalancer) {
-        this.serviceDiscovery = new NacosServiceDiscovery(loadBalancer);
+        this.serviceDiscovery.setLoadbalance(loadBalancer);
         this.serializer = CommonSerializer.getByCode(serializer);
     }
 

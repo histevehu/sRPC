@@ -1,10 +1,13 @@
 package top.histevehu.srpc.core.registry;
 
+import top.histevehu.srpc.common.extension.SrpcSPI;
+
 import java.net.InetSocketAddress;
 
 /**
  * 注册中心服务注册相关接口
  */
+@SrpcSPI
 public interface ServiceRegistry {
     /**
      * 向注册中心注册服务端的服务接口 <br/><br/>

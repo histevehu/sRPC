@@ -20,7 +20,11 @@ public class NacosServiceDiscovery implements ServiceDiscovery {
 
     private static final Logger logger = LoggerFactory.getLogger(NacosServiceDiscovery.class);
 
-    private final LoadBalancer loadBalancer;
+    private LoadBalancer loadBalancer;
+
+    public NacosServiceDiscovery() {
+        this(new RoundRobinLoadBalancer());
+    }
 
     public NacosServiceDiscovery(LoadBalancer loadBalancer) {
         if (loadBalancer == null) this.loadBalancer = new RoundRobinLoadBalancer();
@@ -41,5 +45,10 @@ public class NacosServiceDiscovery implements ServiceDiscovery {
             logger.error("获取服务时有错误发生:", e);
         }
         return null;
+    }
+
+    @Override
+    public void setLoadbalance(LoadBalancer lb) {
+        this.loadBalancer = lb;
     }
 }

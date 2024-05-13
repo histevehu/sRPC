@@ -1,0 +1,4 @@
+Kyro=top.histevehu.srpc.core.serializer.KryoSerializer
+Json=top.histevehu.srpc.core.serializer.JsonSerializer
+Hessian=top.histevehu.srpc.core.serializer.HessianSerializer
+Protobuf=top.histevehu.srpc.core.serializer.ProtobufSerializer

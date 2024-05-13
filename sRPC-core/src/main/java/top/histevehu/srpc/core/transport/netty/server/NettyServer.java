@@ -9,6 +9,7 @@ import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.SneakyThrows;
+import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.hook.ShutdownHook;
@@ -23,15 +24,16 @@ import java.util.concurrent.TimeUnit;
  */
 public class NettyServer extends AbstractRpcServer {
 
-    private final CommonSerializer serializer;
+    private CommonSerializer serializer;
 
     public NettyServer() {
-        this(DEFAULT_SERIALIZER);
+        this.serializer = ExtensionLoader.getExtensionLoader(CommonSerializer.class).getExtension("Kyro");
+        scanServices();
     }
 
-    public NettyServer(Integer serializer) {
-        this.serializer = CommonSerializer.getByCode(serializer);
-        scanServices();
+    public NettyServer setSerializer(CommonSerializer serializer) {
+        this.serializer = serializer;
+        return this;
     }
 
     @SneakyThrows

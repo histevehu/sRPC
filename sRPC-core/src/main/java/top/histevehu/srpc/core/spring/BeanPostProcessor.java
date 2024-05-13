@@ -6,11 +6,11 @@ import org.springframework.beans.BeansException;
 import org.springframework.stereotype.Component;
 import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.factory.SingletonFactory;
 import top.histevehu.srpc.core.annotation.SrpcService;
 import top.histevehu.srpc.core.provider.ServiceProvider;
 import top.histevehu.srpc.core.provider.ServiceProviderImpl;
-import top.histevehu.srpc.core.registry.NacosServiceRegistry;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
 import top.histevehu.srpc.core.transport.RpcServer;
 
@@ -31,7 +31,7 @@ public class BeanPostProcessor implements org.springframework.beans.factory.conf
 
     public BeanPostProcessor() {
         serviceProvider = SingletonFactory.getInstance(ServiceProviderImpl.class);
-        serviceRegistry = SingletonFactory.getInstance(NacosServiceRegistry.class);
+        serviceRegistry = ExtensionLoader.getExtensionLoader(ServiceRegistry.class).getExtension("Nacos");
     }
 
     /**

@@ -14,12 +14,12 @@ import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.enumeration.SerializerType;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.factory.SingletonFactory;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
 import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
-import top.histevehu.srpc.core.registry.NacosServiceDiscovery;
 import top.histevehu.srpc.core.registry.ServiceDiscovery;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
@@ -36,7 +36,7 @@ public class NettyClient implements RpcClient {
     private static final Logger logger = LoggerFactory.getLogger(NettyClient.class);
     private final EventLoopGroup eventLoopGroup;
     private final Bootstrap bootstrap;
-    private final ServiceDiscovery serviceDiscovery;
+    private final ServiceDiscovery serviceDiscovery = ExtensionLoader.getExtensionLoader(ServiceDiscovery.class).getExtension("Nacos");
     private final CommonSerializer serializer;
 
     private final UnprocessedRequests unprocessedRequests;
@@ -56,8 +56,8 @@ public class NettyClient implements RpcClient {
     public NettyClient(SerializerType serializerType, LoadBalancer loadBalancer) {
         this.eventLoopGroup = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
-        this.serviceDiscovery = new NacosServiceDiscovery(loadBalancer);
-        this.serializer = CommonSerializer.getByCode(serializerType.getCode());
+        this.serviceDiscovery.setLoadbalance(loadBalancer);
+        this.serializer = ExtensionLoader.getExtensionLoader(CommonSerializer.class).getExtension("Kyro");
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)

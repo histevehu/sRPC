@@ -44,13 +44,13 @@ public final class ExtensionLoader<T> {
     @SuppressWarnings("unchecked")
     public static <S> ExtensionLoader<S> getExtensionLoader(Class<S> type) {
         if (type == null) {
-            throw new IllegalArgumentException("Extension 类型不能为空");
+            throw new IllegalArgumentException("扩展类类型不能为空");
         }
         if (!type.isInterface()) {
-            throw new IllegalArgumentException("Extension 类型应为接口");
+            throw new IllegalArgumentException("扩展类类型应为接口");
         }
         if (type.getAnnotation(SrpcSPI.class) == null) {
-            throw new IllegalArgumentException("Extension 必须被@SrpcSPI注解");
+            throw new IllegalArgumentException("扩展类必须被@SrpcSPI注解");
         }
         // 获取扩展类加载器，若不存在则创建
         ExtensionLoader<S> extensionLoader = (ExtensionLoader<S>) EXTENSION_LOADERS.get(type);
