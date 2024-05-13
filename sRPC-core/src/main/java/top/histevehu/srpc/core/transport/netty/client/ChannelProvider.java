@@ -3,10 +3,6 @@ package top.histevehu.srpc.core.transport.netty.client;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.Channel;
 import io.netty.channel.ChannelFutureListener;
-import io.netty.channel.ChannelOption;
-import io.netty.channel.EventLoopGroup;
-import io.netty.channel.nio.NioEventLoopGroup;
-import io.netty.channel.socket.nio.NioSocketChannel;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -61,20 +57,6 @@ public class ChannelProvider {
             }
         });
         return completableFuture.get();
-    }
-
-    private static Bootstrap initializeBootstrap() {
-        EventLoopGroup eventLoopGroup = new NioEventLoopGroup();
-        Bootstrap bootstrap = new Bootstrap();
-        bootstrap.group(eventLoopGroup)
-                .channel(NioSocketChannel.class)
-                // 连接的超时时间，超过这个时间还是建立不上的话则代表连接失败
-                .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
-                // 关闭TCP层的心跳探活，改用sRPC实现的应用层心跳探活
-                .option(ChannelOption.SO_KEEPALIVE, false)
-                // 禁用Nagle算法（该算法的作用是尽可能的发送大数据快，减少网络传输），提高数据传输效率
-                .option(ChannelOption.TCP_NODELAY, true);
-        return bootstrap;
     }
 
 }

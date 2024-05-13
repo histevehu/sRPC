@@ -1,9 +1,8 @@
 package top.histevehu.srpc.core.annotation;
 
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import org.springframework.stereotype.Component;
+
+import java.lang.annotation.*;
 
 /**
  * sRPC服务注解，标识在服务的实现类上。<br/><br/>
@@ -11,6 +10,8 @@ import java.lang.annotation.Target;
  */
 @Target(ElementType.TYPE)
 @Retention(RetentionPolicy.RUNTIME)
+@Inherited
+@Component
 public @interface SrpcService {
 
     String group() default "";

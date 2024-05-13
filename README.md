@@ -13,7 +13,9 @@ sRPC，一个基于 Netty 和 Nacos 实现的 RPC 框架
 - 实现自定义传输协议
 - 使用 Nacos 作为注册中心，管理服务提供者信息
 - 支持注解式声明服务及自动扫描注册
-- 良好的接口抽象，模块耦合度低，网络传输、序列化器、负载均衡算法可自由配置
+- 支持指定服务组和版本，实现接口和不同实现及版本的服务注册
+- 支持集成 Spring 通过注解注册及注入服务
+- 良好的接口抽象，且支持SPI机制，模块耦合度低，网络传输、序列化器、负载均衡算法等均可自由配置
 
 ## 架构
 
@@ -55,7 +57,7 @@ sRPC，一个基于 Netty 和 Nacos 实现的 RPC 框架
 
 #### 下载运行 Nacos Server
 
-以 Nacos 2.3.2 为例
+以 Nacos 2.3.2 为例：
 
 ```shell
 wget https://github.com/alibaba/nacos/releases/download/2.3.2/nacos-server-2.3.2.tar.gz
@@ -73,7 +75,6 @@ public interface HelloService {
 ```
 
 ```java
-
 @SrpcService
 public class HelloServiceImpl implements HelloService {
     @Override
@@ -85,33 +86,90 @@ public class HelloServiceImpl implements HelloService {
 
 #### 编写启动类
 
-以Netty方式为例，默认采用Kryo序列化方式
+sRPC支持手动注册和通过注解自动注册服务。以Netty方式为例：
+
+##### 手动注册
+
+```java
+public class TestNettyServer {
+    public static void main(String[] args) {
+        NettyServer nettyServer = new NettyServer();
+        HelloService helloService = new HelloServiceImpl();
+        RpcServiceProperties rpcServiceProperties = new RpcServiceProperties();
+        nettyServer.regService(helloService, rpcServiceProperties);
+        nettyServer.start();
+    }
+}
+```
+
+##### 注解注册
 
 ```java
 @SrpcServiceScan
-public class NettyTestServer {
+public class TestNettyServer {
     public static void main(String[] args) {
-        NettyServer server = new NettyServer("127.0.0.1", 9000);
+        NettyServer server = new NettyServer();
         server.start();
     }
 }
 ```
 
-### 消费端
-
-#### 调用服务
-
-默认采用轮转负载均衡算法
+此外，sRPC支持集成Spring，因此还可通过以下方式启用服务的扫描注册：
 
 ```java
-public class NettyTestClient {
+@SrpcServiceScanSpring
+public class TestNettySpringServer {
+    public static void main(String[] args) {
+        new AnnotationConfigApplicationContext(TestNettySpringServer.class);
+        NettyServer server = new NettyServer();
+        server.start();
+    }
+}
+```
 
+### 客户端
+
+客户端同样支持手动创建代理和注解注入两种方式获取服务：
+
+#### 手动创建代理
+
+```java
+public class TestNettyClient {
     public static void main(String[] args) {
         RpcClient client = new NettyClient();
         RpcClientProxy rpcClientProxy = new RpcClientProxy(client);
         HelloService helloService = rpcClientProxy.getProxy(HelloService.class);
-        String res = helloService.hello("Hello World!");
+        String res = helloService.hello();
         System.out.println(res);
+    }
+}
+```
+
+#### 注解注入
+
+这种方式需要使用Spring Framework：
+
+```java
+@SrpcServiceScanSpring
+public class TestReferenceClient {
+    public static void main(String[] args) {
+        AnnotationConfigApplicationContext applicationContext = new AnnotationConfigApplicationContext(TestReferenceClient.class);
+        ServiceAController serviceAController = (ServiceAController) applicationContext.getBean("serviceAController");
+        System.out.println(serviceAController.hello());
+    }
+}
+```
+
+然后在需要自动注入的服务上加上 `@SrpcReference` 注解即可：
+
+```java
+@Component
+public class ServiceAController {
+    @SrpcReference
+    private ServiceA serviceA;
+
+    public String hello() {
+        return serviceA.hello();
     }
 }
 ```

@@ -17,15 +17,15 @@ import java.net.Socket;
 /**
  * sRPC 基于Socket的服务端的处理远程方法的工作线程
  */
-public class SocketServerHandlerThread implements Runnable {
+public class SocketServerHandlerRunnable implements Runnable {
 
-    private static final Logger logger = LoggerFactory.getLogger(SocketServerHandlerThread.class);
+    private static final Logger logger = LoggerFactory.getLogger(SocketServerHandlerRunnable.class);
 
     private final Socket socket;
     private final RequestHandler requestHandler;
     private final CommonSerializer serializer;
 
-    public SocketServerHandlerThread(Socket socket, RequestHandler requestHandler, CommonSerializer serializer) {
+    public SocketServerHandlerRunnable(Socket socket, RequestHandler requestHandler, CommonSerializer serializer) {
         this.socket = socket;
         this.requestHandler = requestHandler;
         this.serializer = serializer;

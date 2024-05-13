@@ -1,5 +1,6 @@
 package top.histevehu.srpc.core.transport.netty.server;
 
+import io.netty.channel.ChannelFutureListener;
 import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.SimpleChannelInboundHandler;
 import io.netty.handler.timeout.IdleState;
@@ -9,6 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
+import top.histevehu.srpc.common.enumeration.ResponseCode;
 import top.histevehu.srpc.common.factory.ThreadPoolFactory;
 import top.histevehu.srpc.core.handler.RequestHandler;
 
@@ -44,7 +46,9 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                 if (ctx.channel().isActive() && ctx.channel().isWritable()) {
                     ctx.writeAndFlush(RpcResponse.success(result, msg.getRequestId()));
                 } else {
-                    logger.error("通道不可写");
+                    RpcResponse<Object> rpcResponse = RpcResponse.fail(ResponseCode.FAIL, msg.getRequestId());
+                    ctx.writeAndFlush(rpcResponse).addListener(ChannelFutureListener.CLOSE_ON_FAILURE);
+                    logger.error("通道不可写，消息抛弃");
                 }
             } finally {
                 // InBound里读取的ByteBuf要手动释放引用计数，避免内存泄漏

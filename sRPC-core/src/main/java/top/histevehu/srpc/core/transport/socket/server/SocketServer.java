@@ -9,6 +9,7 @@ import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.AbstractRpcServer;
 
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.ServerSocket;
 import java.net.Socket;
@@ -25,13 +26,11 @@ public class SocketServer extends AbstractRpcServer {
 
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
-    public SocketServer(String host, int port) {
-        this(host, port, DEFAULT_SERIALIZER);
+    public SocketServer() {
+        this(DEFAULT_SERIALIZER);
     }
 
-    public SocketServer(String host, int port, Integer serializer) {
-        this.host = host;
-        this.port = port;
+    public SocketServer(Integer serializer) {
         this.threadPool = ThreadPoolFactory.createDefaultThreadPool("socket-rpc-server");
         this.serializer = CommonSerializer.getByCode(serializer);
         this.requestHandler = new RequestHandler();
@@ -41,13 +40,13 @@ public class SocketServer extends AbstractRpcServer {
     public void start() {
         logger.info("sRPC服务端正在启动...");
         try (ServerSocket serverSocket = new ServerSocket()) {
-            serverSocket.bind(new InetSocketAddress(host, port));
-            logger.info("sRPC服务端启动成功，端口：{}", port);
+            serverSocket.bind(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), PORT));
+            logger.info("sRPC服务端启动成功，端口：{}", PORT);
             ShutdownHook.getShutdownHook().addClearAllHook();
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
                 logger.info("客户端连接，{}:{}", socket.getInetAddress(), socket.getPort());
-                threadPool.execute(new SocketServerHandlerThread(socket, requestHandler, serializer));
+                threadPool.execute(new SocketServerHandlerRunnable(socket, requestHandler, serializer));
             }
         } catch (IOException e) {
             logger.error("连接时有错误发生：", e);

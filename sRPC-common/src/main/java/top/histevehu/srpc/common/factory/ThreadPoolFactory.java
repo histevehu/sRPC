@@ -21,7 +21,7 @@ public class ThreadPoolFactory {
 
     private final static Logger logger = LoggerFactory.getLogger(ThreadPoolFactory.class);
 
-    private static Map<String, ExecutorService> threadPoolsMap = new ConcurrentHashMap<>();
+    private static final Map<String, ExecutorService> threadPoolsMap = new ConcurrentHashMap<>();
 
     private ThreadPoolFactory() {
     }

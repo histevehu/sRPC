@@ -45,6 +45,7 @@ public class ServiceProviderImpl implements ServiceProvider {
                     serviceProperties.getVersion());
             return;
         }
+        logger.error("当前服务组{}内服务接口{}下已经注册有相同版本{}的服务实现", serviceProperties.getGroup(), serviceProperties.getServiceName(), serviceProperties.getVersion());
         throw new RpcException(RpcError.SERVICE_EXISTED);
     }
 

@@ -10,7 +10,7 @@ public interface ServiceProvider {
     /**
      * 添加提供服务的实例对象
      */
-    <T> void addServiceProvider(T service, RpcServiceProperties serviceProperties) throws RpcException;
+    <T> void addServiceProvider(T serviceImpl, RpcServiceProperties serviceProperties) throws RpcException;
 
     /**
      * 获取提供服务的实例对象

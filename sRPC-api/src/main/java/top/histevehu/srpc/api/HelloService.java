@@ -5,5 +5,11 @@ package top.histevehu.srpc.api;
  */
 public interface HelloService {
 
-    String hello(HelloObject object);
+    default String hello(HelloObject object) {
+        return object.toString();
+    }
+
+    default String hello() {
+        return "Hello World";
+    }
 }

@@ -8,12 +8,14 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import lombok.SneakyThrows;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.hook.ShutdownHook;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.AbstractRpcServer;
 
+import java.net.InetAddress;
 import java.util.concurrent.TimeUnit;
 
 /**
@@ -23,17 +25,16 @@ public class NettyServer extends AbstractRpcServer {
 
     private final CommonSerializer serializer;
 
-    public NettyServer(String host, int port) {
-        this(host, port, DEFAULT_SERIALIZER);
+    public NettyServer() {
+        this(DEFAULT_SERIALIZER);
     }
 
-    public NettyServer(String host, int port, Integer serializer) {
-        this.host = host;
-        this.port = port;
+    public NettyServer(Integer serializer) {
         this.serializer = CommonSerializer.getByCode(serializer);
         scanServices();
     }
 
+    @SneakyThrows
     @Override
     public void start() {
         // BossGroup负责接收客户端的连接
@@ -67,7 +68,7 @@ public class NettyServer extends AbstractRpcServer {
                                     .addLast(new NettyServerHandler());
                         }
                     });
-            ChannelFuture future = serverBootstrap.bind(host, port).sync();
+            ChannelFuture future = serverBootstrap.bind(InetAddress.getLocalHost().getHostAddress(), PORT).sync();
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
             logger.error("启动服务器时有错误发生: ", e);

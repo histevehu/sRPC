@@ -14,15 +14,14 @@ import top.histevehu.srpc.core.provider.ServiceProviderImpl;
 import top.histevehu.srpc.core.registry.NacosServiceRegistry;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
 
+import java.net.InetAddress;
 import java.net.InetSocketAddress;
+import java.net.UnknownHostException;
 import java.util.Set;
 
 public abstract class AbstractRpcServer implements RpcServer {
 
     protected Logger logger = LoggerFactory.getLogger(this.getClass());
-
-    protected String host;
-    protected int port;
 
     protected static ServiceRegistry serviceRegistry = SingletonFactory.getInstance(NacosServiceRegistry.class);
     protected static ServiceProvider serviceProvider = SingletonFactory.getInstance(ServiceProviderImpl.class);
@@ -37,14 +36,14 @@ public abstract class AbstractRpcServer implements RpcServer {
         try {
             startClass = Class.forName(mainClassName);
             if (!startClass.isAnnotationPresent(SrpcServiceScan.class)) {
-                logger.info("启动类无@srpcServiceScan注解，服务扫描关闭");
+                logger.info("启动类无@srpcServiceScan注解");
                 return;
             }
         } catch (ClassNotFoundException e) {
             logger.error("无法找到启动类");
             throw new RpcException(RpcError.CLASS_NOT_FOUND);
         }
-        logger.info("开始扫描服务");
+        logger.info("启动类有@srpcServiceScan注解");
         String basePackage = startClass.getAnnotation(SrpcServiceScan.class).basePackage();
         // 若@SrpcServiceScan注解未定义basePackage属性，则默认将启动类所在包设为basePackage
         if ("".equals(basePackage)) {
@@ -94,9 +93,12 @@ public abstract class AbstractRpcServer implements RpcServer {
     public <T> void regService(T service, RpcServiceProperties serviceProperties) {
         try {
             serviceProvider.addServiceProvider(service, serviceProperties);
-            serviceRegistry.register(serviceProperties.toRpcServiceFullName(), new InetSocketAddress(host, port));
+            serviceRegistry.register(serviceProperties.toRpcServiceFullName(), new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), PORT));
         } catch (RpcException e) {
-            logger.error("{}服务注册发生错误：{}", serviceProperties.toRpcServiceFullName(), e.getMessage());
+            logger.error("sRPC {}服务注册发生错误：{}", serviceProperties.toRpcServiceFullName(), e.getMessage());
+        } catch (UnknownHostException e) {
+            logger.error("无法解析Host地址，服务注册失败：{}", e.getMessage());
+            throw new RuntimeException(e);
         }
     }
 

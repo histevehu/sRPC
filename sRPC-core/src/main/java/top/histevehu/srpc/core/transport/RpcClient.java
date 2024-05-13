@@ -1,11 +1,13 @@
 package top.histevehu.srpc.core.transport;
 
 import top.histevehu.srpc.common.entity.RpcRequest;
+import top.histevehu.srpc.common.extension.SrpcSPI;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 
 /**
  * sRPC客户端接口（调用远程方法方）
  */
+@SrpcSPI
 public interface RpcClient {
 
     /**

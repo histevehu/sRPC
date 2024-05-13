@@ -1,0 +1,2 @@
+NettyClient=top.histevehu.srpc.core.transport.netty.client.NettyClient
+SocketClient=top.histevehu.srpc.core.transport.socket.client.SocketClient

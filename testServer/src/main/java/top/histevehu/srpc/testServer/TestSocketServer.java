@@ -11,7 +11,7 @@ import top.histevehu.srpc.core.transport.socket.server.SocketServer;
 public class TestSocketServer {
 
     public static void main(String[] args) {
-        SocketServer socketServer = new SocketServer("127.0.0.1", 9000);
+        SocketServer socketServer = new SocketServer();
         socketServer.start();
     }
 

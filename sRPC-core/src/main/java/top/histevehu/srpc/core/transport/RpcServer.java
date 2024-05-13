@@ -8,6 +8,8 @@ import top.histevehu.srpc.core.serializer.CommonSerializer;
  */
 public interface RpcServer {
 
+    int PORT = 9899;
+
     /**
      * 默认（反）序列化器
      */

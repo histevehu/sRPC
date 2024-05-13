@@ -9,7 +9,7 @@ import top.histevehu.srpc.core.transport.netty.server.NettyServer;
 @SrpcServiceScan
 public class TestNettyServer {
     public static void main(String[] args) {
-        NettyServer server = new NettyServer("127.0.0.1", 9001);
+        NettyServer server = new NettyServer();
         server.start();
     }
 }
