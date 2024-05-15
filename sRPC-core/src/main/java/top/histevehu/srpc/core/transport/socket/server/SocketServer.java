@@ -21,8 +21,8 @@ import java.util.concurrent.ExecutorService;
 public class SocketServer extends AbstractRpcServer {
 
     private final ExecutorService threadPool;
-    private final CommonSerializer serializer;
     private final RequestHandler requestHandler;
+    private CommonSerializer serializer;
 
     private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
@@ -35,6 +35,10 @@ public class SocketServer extends AbstractRpcServer {
         this.serializer = CommonSerializer.getByCode(serializer);
         this.requestHandler = new RequestHandler();
         scanServices();
+    }
+
+    public void setSerializer(CommonSerializer serializer) {
+        this.serializer = serializer;
     }
 
     public void start() {

@@ -8,8 +8,8 @@ import io.netty.channel.socket.nio.NioServerSocketChannel;
 import io.netty.handler.logging.LogLevel;
 import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
+import lombok.Setter;
 import lombok.SneakyThrows;
-import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.hook.ShutdownHook;
@@ -22,18 +22,18 @@ import java.util.concurrent.TimeUnit;
 /**
  * sRPC 基于Netty的服务端
  */
+@Setter
 public class NettyServer extends AbstractRpcServer {
 
     private CommonSerializer serializer;
 
     public NettyServer() {
-        this.serializer = ExtensionLoader.getExtensionLoader(CommonSerializer.class).getExtension("Kyro");
-        scanServices();
+        this(DEFAULT_SERIALIZER);
     }
 
-    public NettyServer setSerializer(CommonSerializer serializer) {
-        this.serializer = serializer;
-        return this;
+    public NettyServer(Integer serializer) {
+        this.serializer = CommonSerializer.getByCode(serializer);
+        scanServices();
     }
 
     @SneakyThrows

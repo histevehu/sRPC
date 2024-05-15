@@ -106,6 +106,7 @@ public final class ExtensionLoader<T> {
                 throw new RuntimeException("Fail to create an instance of the extension class " + clazz);
             }
         }
+        log.info("SPI 扩展类 {} 加载成功", instance.getClass().getCanonicalName());
         return instance;
     }
 

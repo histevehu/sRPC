@@ -57,7 +57,7 @@ public class NettyClient implements RpcClient {
         this.eventLoopGroup = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
         this.serviceDiscovery.setLoadbalance(loadBalancer);
-        this.serializer = ExtensionLoader.getExtensionLoader(CommonSerializer.class).getExtension("Kyro");
+        this.serializer = ExtensionLoader.getExtensionLoader(CommonSerializer.class).getExtension("Kryo");
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
