@@ -2,8 +2,6 @@
 
 ![Static Badge](https://img.shields.io/badge/license-MIT-green) ![Static Badge](https://img.shields.io/badge/OpenJDK-21-blue) [![Build Status](https://app.travis-ci.com/histevehu/sRPC.svg?token=fsyLx7wqz3Fwpzu63a5T&branch=main)](https://app.travis-ci.com/histevehu/sRPC) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
-sRPC，一个基于 Netty 和 Nacos 实现的 RPC 框架
-
 ## 特性
 
 - 支持了基于 Java 原生 Socket 传输与 Netty 传输两种网络传输方式
