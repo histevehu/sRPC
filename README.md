@@ -4,16 +4,16 @@
 
 ## 特性
 
-- 支持了基于 Java 原生 Socket 传输与 Netty 传输两种网络传输方式
+- 支持基于 Java 原生 Socket 传输与 Netty 传输两种网络传输方式
 - 支持四种序列化框架，Json、Kryo、Hessian 和 Google Protobuf
 - 实现心跳机制和Channel复用，提供稳定和低开销的连接
-- 实现了两种负载均衡算法：随机算法与轮转算法
+- 实现随机算法、轮转和一致性哈希负载均衡算法：
 - 实现自定义传输协议
 - 使用 Nacos 作为注册中心，管理服务提供者信息
 - 支持注解式声明服务及自动扫描注册
 - 支持指定服务组和版本，实现接口和不同实现及版本的服务注册
 - 支持集成 Spring 通过注解注册及注入服务
-- 良好的接口抽象，支持SPI机制，模块耦合度低，注册中心、网络传输、序列化器、负载均衡算法等均可自由配置
+- 良好的接口抽象，模块耦合度低，支持SPI机制及通过配置文件进行配置，注册中心、网络传输、序列化器、负载均衡算法等均可自由配置
 
 ## 架构
 
@@ -73,7 +73,6 @@ public interface HelloService {
 ```
 
 ```java
-
 @SrpcService
 public class HelloServiceImpl implements HelloService {
     @Override
@@ -104,7 +103,6 @@ public class TestNettyServer {
 ##### 注解注册
 
 ```java
-
 @SrpcServiceScan
 public class TestNettyServer {
     public static void main(String[] args) {
@@ -117,7 +115,6 @@ public class TestNettyServer {
 此外，sRPC支持集成Spring，因此还可通过以下方式启用服务的扫描注册：
 
 ```java
-
 @SrpcServiceScanSpring
 public class TestNettySpringServer {
     public static void main(String[] args) {
@@ -151,7 +148,6 @@ public class TestNettyClient {
 这种方式需要使用Spring Framework：
 
 ```java
-
 @SrpcServiceScanSpring
 public class TestReferenceClient {
     public static void main(String[] args) {
@@ -165,7 +161,6 @@ public class TestReferenceClient {
 然后在需要自动注入的服务上加上 `@SrpcReference` 注解即可：
 
 ```java
-
 @Component
 public class ServiceAController {
     @SrpcReference
