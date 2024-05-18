@@ -10,7 +10,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
-import top.histevehu.srpc.common.entity.RpcServiceProperties;
+import top.histevehu.srpc.common.enumeration.LoadBalanceType;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.enumeration.SerializerType;
 import top.histevehu.srpc.common.exception.RpcException;
@@ -18,8 +18,7 @@ import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.factory.SingletonFactory;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
-import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
-import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
+import top.histevehu.srpc.core.loadbalance.LoadBalance;
 import top.histevehu.srpc.core.registry.ServiceDiscovery;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
@@ -42,28 +41,27 @@ public class NettyClient implements RpcClient {
     private final UnprocessedRequests unprocessedRequests;
 
     public NettyClient() {
-        this(SerializerType.DEFAULT, new RoundRobinLoadBalancer());
+        this(SerializerType.DEFAULT, LoadBalanceType.DEFAULT);
     }
 
-    public NettyClient(LoadBalancer loadBalancer) {
-        this(SerializerType.DEFAULT, loadBalancer);
+    public NettyClient(LoadBalanceType loadBalanceType) {
+        this(SerializerType.DEFAULT, loadBalanceType);
     }
 
     public NettyClient(SerializerType serializerType) {
-        this(serializerType, new RoundRobinLoadBalancer());
+        this(serializerType, LoadBalanceType.DEFAULT);
     }
 
-    public NettyClient(SerializerType serializerType, LoadBalancer loadBalancer) {
+    public NettyClient(SerializerType serializerType, LoadBalanceType loadBalanceType) {
         this.eventLoopGroup = new NioEventLoopGroup();
         this.bootstrap = new Bootstrap();
-        this.serviceDiscovery.setLoadbalance(loadBalancer);
-        this.serializer = ExtensionLoader.getExtensionLoader(CommonSerializer.class).getExtension("Kryo");
+        this.serviceDiscovery.setLoadbalance(LoadBalance.getByCode(loadBalanceType.getCode()));
+        this.serializer = CommonSerializer.getByCode(serializerType.getCode());
         this.unprocessedRequests = SingletonFactory.getInstance(UnprocessedRequests.class);
         bootstrap.group(eventLoopGroup)
                 .channel(NioSocketChannel.class)
                 // .handler(new LoggingHandler(LogLevel.INFO))
-                // 连接的超时期限。
-                // 如果超过此时间或无法建立连接，则连接将失败
+                // 连接的超时期限, 如果超过此时间或无法建立连接，则连接将失败
                 .option(ChannelOption.CONNECT_TIMEOUT_MILLIS, 5000)
                 .handler(new ChannelInitializer<SocketChannel>() {
                     @Override
@@ -91,10 +89,8 @@ public class NettyClient implements RpcClient {
     @Override
     public CompletableFuture<RpcResponse<Object>> sendRequest(RpcRequest rpcRequest) {
         CompletableFuture<RpcResponse<Object>> resultFuture = new CompletableFuture<>();
-        String serviceFullName = RpcServiceProperties.builder().serviceName(rpcRequest.getInterfaceName())
-                .group(rpcRequest.getGroup()).version(rpcRequest.getVersion()).build().toRpcServiceFullName();
         try {
-            InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(serviceFullName);
+            InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest);
             Channel channel = ChannelProvider.get(inetSocketAddress, bootstrap);
             if (channel != null && !channel.isActive()) {
                 eventLoopGroup.shutdownGracefully();
@@ -118,5 +114,9 @@ public class NettyClient implements RpcClient {
             Thread.currentThread().interrupt();
         }
         return resultFuture;
+    }
+
+    public void shutdown() {
+        eventLoopGroup.shutdownGracefully();
     }
 }

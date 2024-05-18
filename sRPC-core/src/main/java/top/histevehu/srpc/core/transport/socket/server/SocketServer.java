@@ -1,7 +1,7 @@
 package top.histevehu.srpc.core.transport.socket.server;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Setter;
+import lombok.extern.slf4j.Slf4j;
 import top.histevehu.srpc.common.factory.ThreadPoolFactory;
 import top.histevehu.srpc.core.handler.RequestHandler;
 import top.histevehu.srpc.core.hook.ShutdownHook;
@@ -18,13 +18,13 @@ import java.util.concurrent.ExecutorService;
 /**
  * sRPC 基于Socket的服务端
  */
+@Slf4j
 public class SocketServer extends AbstractRpcServer {
 
     private final ExecutorService threadPool;
     private final RequestHandler requestHandler;
+    @Setter
     private CommonSerializer serializer;
-
-    private static final Logger logger = LoggerFactory.getLogger(SocketServer.class);
 
     public SocketServer() {
         this(DEFAULT_SERIALIZER);
@@ -34,26 +34,22 @@ public class SocketServer extends AbstractRpcServer {
         this.threadPool = ThreadPoolFactory.createDefaultThreadPool("socket-rpc-server");
         this.serializer = CommonSerializer.getByCode(serializer);
         this.requestHandler = new RequestHandler();
-        scanServices();
-    }
-
-    public void setSerializer(CommonSerializer serializer) {
-        this.serializer = serializer;
+        scanServices(getPort());
     }
 
     public void start() {
-        logger.info("sRPC服务端正在启动...");
+        log.info("sRPC服务端正在启动...");
         try (ServerSocket serverSocket = new ServerSocket()) {
-            serverSocket.bind(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), PORT));
-            logger.info("sRPC服务端启动成功，端口：{}", PORT);
+            serverSocket.bind(new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), getPort()));
+            log.info("sRPC服务端启动成功，端口：{}", getPort());
             ShutdownHook.getShutdownHook().addClearAllHook();
             Socket socket;
             while ((socket = serverSocket.accept()) != null) {
-                logger.info("客户端连接，{}:{}", socket.getInetAddress(), socket.getPort());
+                log.info("客户端连接，{}:{}", socket.getInetAddress(), socket.getPort());
                 threadPool.execute(new SocketServerHandlerRunnable(socket, requestHandler, serializer));
             }
         } catch (IOException e) {
-            logger.error("连接时有错误发生：", e);
+            log.error("连接时有错误发生：", e);
         } finally {
             threadPool.shutdown();
         }

@@ -39,10 +39,10 @@ public class NacosUtil {
         }
     }
 
-    public static void registerService(String serviceName, InetSocketAddress address) throws NacosException {
-        namingService.registerInstance(serviceName, address.getHostName(), address.getPort());
+    public static void registerService(String serviceFullName, InetSocketAddress address) throws NacosException {
+        namingService.registerInstance(serviceFullName, address.getHostName(), address.getPort());
         NacosUtil.address = address;
-        serviceNames.add(serviceName);
+        serviceNames.add(serviceFullName);
     }
 
     public static List<Instance> getAllInstance(String serviceName) throws NacosException {

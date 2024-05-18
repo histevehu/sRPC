@@ -4,14 +4,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.entity.RpcResponse;
-import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.enumeration.ResponseCode;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.util.RpcMessageChecker;
-import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
-import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
+import top.histevehu.srpc.core.loadbalance.LoadBalance;
+import top.histevehu.srpc.core.loadbalance.lb.RoundRobinLoadBalance;
 import top.histevehu.srpc.core.registry.ServiceDiscovery;
 import top.histevehu.srpc.core.serializer.CommonSerializer;
 import top.histevehu.srpc.core.transport.RpcClient;
@@ -36,27 +35,25 @@ public class SocketClient implements RpcClient {
     private final CommonSerializer serializer;
 
     public SocketClient() {
-        this(DEFAULT_SERIALIZER, new RoundRobinLoadBalancer());
+        this(DEFAULT_SERIALIZER, new RoundRobinLoadBalance());
     }
 
-    public SocketClient(LoadBalancer loadBalancer) {
-        this(DEFAULT_SERIALIZER, loadBalancer);
+    public SocketClient(LoadBalance loadBalance) {
+        this(DEFAULT_SERIALIZER, loadBalance);
     }
 
     public SocketClient(Integer serializer) {
-        this(serializer, new RoundRobinLoadBalancer());
+        this(serializer, new RoundRobinLoadBalance());
     }
 
-    public SocketClient(Integer serializer, LoadBalancer loadBalancer) {
-        this.serviceDiscovery.setLoadbalance(loadBalancer);
+    public SocketClient(Integer serializer, LoadBalance loadBalance) {
+        this.serviceDiscovery.setLoadbalance(loadBalance);
         this.serializer = CommonSerializer.getByCode(serializer);
     }
 
     @Override
     public RpcResponse<Object> sendRequest(RpcRequest rpcRequest) {
-        String serviceFullName = RpcServiceProperties.builder().serviceName(rpcRequest.getInterfaceName())
-                .group(rpcRequest.getGroup()).version(rpcRequest.getVersion()).build().toRpcServiceFullName();
-        InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(serviceFullName);
+        InetSocketAddress inetSocketAddress = serviceDiscovery.lookupService(rpcRequest);
         try (Socket socket = new Socket()) {
             socket.connect(inetSocketAddress);
             OutputStream outputStream = socket.getOutputStream();

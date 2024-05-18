@@ -1,0 +1,3 @@
+RANDOM=top.histevehu.srpc.core.loadbalance.lb.RandomLoadBalance
+ROUND_ROBIN=top.histevehu.srpc.core.loadbalance.lb.RoundRobinLoadBalance
+CONSISTENT_HASH=top.histevehu.srpc.core.loadbalance.lb.ConsistentHashLoadBalance

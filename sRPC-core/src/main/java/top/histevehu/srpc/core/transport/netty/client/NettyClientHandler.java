@@ -38,6 +38,8 @@ public class NettyClientHandler extends SimpleChannelInboundHandler<RpcResponse<
             logger.info(String.format("客户端接收到消息: %s", msg));
             unprocessedRequests.complete(msg);
         } finally {
+            // 释放入站信息
+            // InBound里读取的ByteBuf要手动释放引用计数，避免内存泄漏
             ReferenceCountUtil.release(msg);
         }
     }

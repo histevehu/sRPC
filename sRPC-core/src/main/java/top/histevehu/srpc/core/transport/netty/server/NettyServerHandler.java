@@ -51,6 +51,7 @@ public class NettyServerHandler extends SimpleChannelInboundHandler<RpcRequest> 
                     logger.error("通道不可写，消息抛弃");
                 }
             } finally {
+                // 释放入站信息
                 // InBound里读取的ByteBuf要手动释放引用计数，避免内存泄漏
                 ReferenceCountUtil.release(msg);
             }

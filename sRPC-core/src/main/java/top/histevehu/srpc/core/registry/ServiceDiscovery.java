@@ -1,7 +1,8 @@
 package top.histevehu.srpc.core.registry;
 
+import top.histevehu.srpc.common.entity.RpcRequest;
 import top.histevehu.srpc.common.extension.SrpcSPI;
-import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
+import top.histevehu.srpc.core.loadbalance.LoadBalance;
 
 import java.net.InetSocketAddress;
 
@@ -13,12 +14,12 @@ public interface ServiceDiscovery {
     /**
      * 根据服务名称从服务中心查找获取服务实体
      *
-     * @param serviceName 服务名称
+     * @param rpcRequest 服务名称
      * @return 服务实体
      */
-    InetSocketAddress lookupService(String serviceName);
+    InetSocketAddress lookupService(RpcRequest rpcRequest);
 
-    default void setLoadbalance(LoadBalancer lb) {
+    default void setLoadbalance(LoadBalance lb) {
         throw new UnsupportedOperationException();
     }
 }

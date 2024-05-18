@@ -10,6 +10,7 @@ import io.netty.handler.logging.LoggingHandler;
 import io.netty.handler.timeout.IdleStateHandler;
 import lombok.Setter;
 import lombok.SneakyThrows;
+import lombok.extern.slf4j.Slf4j;
 import top.histevehu.srpc.core.codec.CommonDecoder;
 import top.histevehu.srpc.core.codec.CommonEncoder;
 import top.histevehu.srpc.core.hook.ShutdownHook;
@@ -19,10 +20,9 @@ import top.histevehu.srpc.core.transport.AbstractRpcServer;
 import java.net.InetAddress;
 import java.util.concurrent.TimeUnit;
 
-/**
- * sRPC 基于Netty的服务端
- */
+
 @Setter
+@Slf4j
 public class NettyServer extends AbstractRpcServer {
 
     private CommonSerializer serializer;
@@ -33,7 +33,7 @@ public class NettyServer extends AbstractRpcServer {
 
     public NettyServer(Integer serializer) {
         this.serializer = CommonSerializer.getByCode(serializer);
-        scanServices();
+        scanServices(getPort());
     }
 
     @SneakyThrows
@@ -70,10 +70,11 @@ public class NettyServer extends AbstractRpcServer {
                                     .addLast(new NettyServerHandler());
                         }
                     });
-            ChannelFuture future = serverBootstrap.bind(InetAddress.getLocalHost().getHostAddress(), PORT).sync();
+            ChannelFuture future = serverBootstrap.bind(InetAddress.getLocalHost().getHostAddress(), getPort()).sync();
+            log.info("sRPC Netty Server 启动成功 {}", future.channel().localAddress());
             future.channel().closeFuture().sync();
         } catch (InterruptedException e) {
-            logger.error("启动服务器时有错误发生: ", e);
+            log.error("启动服务器时有错误发生: ", e);
         } finally {
             bossGroup.shutdownGracefully();
             workerGroup.shutdownGracefully();

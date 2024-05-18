@@ -38,7 +38,7 @@ public class ServiceProviderImpl implements ServiceProvider {
         if (!registeredService.contains(serviceFullName)) {
             registeredService.add(serviceFullName);
             serviceMap.put(serviceFullName, serviceImpl);
-            logger.info("注册服务：服务接口 {} 服务实现 {} 服务组 {} 版本 {}",
+            logger.info("本地服务注册：服务接口 {} 服务实现 {} 服务组 {} 版本 {}",
                     serviceProperties.getServiceName(),
                     serviceImpl.getClass().getCanonicalName(),
                     serviceProperties.getGroup(),

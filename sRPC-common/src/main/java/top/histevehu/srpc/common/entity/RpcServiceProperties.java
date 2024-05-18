@@ -43,6 +43,9 @@ public class RpcServiceProperties {
         return this;
     }
 
+    /**
+     * 输出服务名全称：服务组@服务接口名@版本
+     */
     public String toRpcServiceFullName() {
         return this.getGroup() + "@" + this.getServiceName() + "@" + this.getVersion();
     }

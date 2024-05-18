@@ -12,7 +12,7 @@ import top.histevehu.srpc.core.annotation.SrpcService;
 import top.histevehu.srpc.core.provider.ServiceProvider;
 import top.histevehu.srpc.core.provider.ServiceProviderImpl;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
-import top.histevehu.srpc.core.transport.RpcServer;
+import top.histevehu.srpc.core.transport.AbstractRpcServer;
 
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
@@ -70,7 +70,7 @@ public class BeanPostProcessor implements org.springframework.beans.factory.conf
     private <T> void regService(T service, RpcServiceProperties serviceProperties) {
         try {
             serviceProvider.addServiceProvider(service, serviceProperties);
-            serviceRegistry.register(serviceProperties.toRpcServiceFullName(), new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), RpcServer.PORT));
+            serviceRegistry.register(serviceProperties.toRpcServiceFullName(), new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), AbstractRpcServer.getPort()));
         } catch (RpcException e) {
             log.error("{}服务注册发生错误：{}", serviceProperties.toRpcServiceFullName(), e.getMessage());
         } catch (UnknownHostException e) {

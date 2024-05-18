@@ -1,18 +1,19 @@
 package top.histevehu.srpc.common.extension;
 
 import lombok.extern.slf4j.Slf4j;
+import top.histevehu.srpc.common.enumeration.RpcError;
+import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.util.Holder;
+import top.histevehu.srpc.common.util.config.ConfigMap;
 
-import java.io.BufferedReader;
 import java.io.IOException;
-import java.io.InputStreamReader;
 import java.net.URL;
 import java.util.Enumeration;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
 
-import static java.nio.charset.StandardCharsets.UTF_8;
+import static top.histevehu.srpc.common.util.config.ConfigFileUtil.parseConfigFile;
 
 /**
  * 扩展类加载
@@ -22,9 +23,9 @@ public final class ExtensionLoader<T> {
 
     // 扩展类配置默认存放位置
     private static final String EXTENSION_DIRECTORY = "META-INF/extensions/";
-    // 全局存储<接口类型，扩展类加载器>
+    // <接口类型，扩展类加载器>
     private static final Map<Class<?>, ExtensionLoader<?>> EXTENSION_LOADERS = new ConcurrentHashMap<>();
-    // 全局存储<接口类型，扩展类实例>
+    // <接口类型，扩展类实例>
     private static final Map<Class<?>, Object> EXTENSION_INSTANCES = new ConcurrentHashMap<>();
 
     // 每个扩展类加载器内缓存其类型及实例
@@ -94,7 +95,7 @@ public final class ExtensionLoader<T> {
     private T createExtension(String name) {
         Class<?> clazz = getExtensionClasses().get(name);
         if (clazz == null) {
-            throw new RuntimeException("No such extension of name " + name);
+            throw new RuntimeException("扩展类不存在：" + name);
         }
         T instance = (T) EXTENSION_INSTANCES.get(clazz);
         if (instance == null) {
@@ -103,7 +104,7 @@ public final class ExtensionLoader<T> {
                 instance = (T) EXTENSION_INSTANCES.get(clazz);
             } catch (Exception e) {
                 log.error(e.getMessage());
-                throw new RuntimeException("Fail to create an instance of the extension class " + clazz);
+                throw new RuntimeException("创建扩展类实例失败：" + clazz);
             }
         }
         log.info("SPI 扩展类 {} 加载成功", instance.getClass().getCanonicalName());
@@ -148,34 +149,21 @@ public final class ExtensionLoader<T> {
     }
 
     private void loadResource(Map<String, Class<?>> extensionClasses, ClassLoader classLoader, URL resourceUrl) {
-        try (BufferedReader reader = new BufferedReader(new InputStreamReader(resourceUrl.openStream(), UTF_8))) {
-            String line;
-            // 读每一行
-            while ((line = reader.readLine()) != null) {
-                // 获取注释索引
-                final int ci = line.indexOf('#');
-                if (ci >= 0) {
-                    // # 后面的字符串是注释，所以忽略
-                    line = line.substring(0, ci);
-                }
-                line = line.trim();
-                if (!line.isEmpty()) {
-                    try {
-                        final int ei = line.indexOf('=');
-                        String name = line.substring(0, ei).trim();
-                        String clazzName = line.substring(ei + 1).trim();
-                        // sRPC SPI 使用键值对，因此两者都不能为空
-                        if (!name.isEmpty() && !clazzName.isEmpty()) {
-                            Class<?> clazz = classLoader.loadClass(clazzName);
-                            extensionClasses.put(name, clazz);
-                        }
-                    } catch (ClassNotFoundException e) {
-                        log.error(e.getMessage());
-                    }
+        try {
+            ConfigMap configMap = parseConfigFile(resourceUrl);
+            for (Map.Entry<String, String> entry : configMap.getMapEntries()) {
+                String name = entry.getKey();
+                String clazzName = entry.getValue();
+                try {
+                    Class<?> clazz = classLoader.loadClass(clazzName);
+                    extensionClasses.put(name, clazz);
+                } catch (ClassNotFoundException e) {
+                    log.error("找不到扩展类: {}", clazzName, e);
+                    throw new RpcException(RpcError.CLASS_NOT_FOUND);
                 }
             }
         } catch (IOException e) {
-            log.error(e.getMessage());
+            log.error("读取配置文件{}错误", resourceUrl);
         }
     }
 }

@@ -22,4 +22,7 @@ public interface RpcClient {
      * @return 响应对象
      */
     Object sendRequest(RpcRequest rpcRequest);
+
+    default void shutdown() {
+    }
 }

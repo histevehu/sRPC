@@ -10,6 +10,9 @@ import lombok.Getter;
 @Getter
 public enum RpcError {
 
+    ILLEGAL_PORT("非法端口"),
+    PORT_IN_USE("端口已在使用中"),
+    NO_AVAILABLE_PORT("无可用端口"),
     CLIENT_CONNECT_SERVER_FAILURE("客户端连接服务端失败"),
 
     SERVICE_INVOCATION_FAILURE("服务调用失败"),
@@ -27,9 +30,14 @@ public enum RpcError {
 
     FAILED_TO_CONNECT_TO_SERVICE_REGISTRY("连接注册中心失败"),
     REGISTER_SERVICE_FAILED("注册服务失败"),
+    LB_SELECT_FAILED("负载均衡选择实例失败"),
 
     SERVICE_SCAN_PACKAGE_NOT_FOUND("启动类ServiceScan注解缺失"),
-    CLASS_NOT_FOUND("找不到类");
+    CLASS_NOT_FOUND("找不到类"),
+
+    CONFIG_FILE_NOT_FOUND("未找到配置文件"),
+    CONFIG_FILE_PARSE_FAILED("配置文件解析发生错误");
+
 
     private final String message;
 

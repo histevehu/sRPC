@@ -1,27 +1,48 @@
 package top.histevehu.srpc.core.transport;
 
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import lombok.Getter;
+import lombok.extern.slf4j.Slf4j;
 import top.histevehu.srpc.common.entity.RpcServiceProperties;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
 import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.factory.SingletonFactory;
+import top.histevehu.srpc.common.util.IOUtil;
 import top.histevehu.srpc.common.util.ReflectUtil;
+import top.histevehu.srpc.common.util.config.ConfigMap;
 import top.histevehu.srpc.core.annotation.SrpcService;
 import top.histevehu.srpc.core.annotation.SrpcServiceScan;
 import top.histevehu.srpc.core.provider.ServiceProvider;
 import top.histevehu.srpc.core.provider.ServiceProviderImpl;
 import top.histevehu.srpc.core.registry.ServiceRegistry;
 
+import java.io.IOException;
 import java.net.InetAddress;
 import java.net.InetSocketAddress;
 import java.net.UnknownHostException;
 import java.util.Set;
 
+import static top.histevehu.srpc.common.util.config.ConfigFileUtil.parseConfigFile;
+
+@Slf4j
 public abstract class AbstractRpcServer implements RpcServer {
 
-    protected Logger logger = LoggerFactory.getLogger(this.getClass());
+    @Getter
+    private static int port;
+
+    static {
+        try {
+            ConfigMap configMap = parseConfigFile("META-INF/config/sRPC-Server");
+            // 读取配置端口
+            int startPort = configMap.get("port")
+                    .map(Integer::parseInt)
+                    .orElseThrow(() -> new RpcException(RpcError.CONFIG_FILE_PARSE_FAILED, "Netty Server配置文件中缺少端口"));
+            port = IOUtil.findAvailablePort(startPort);
+        } catch (IOException e) {
+            log.error("读取Netty Server配置文件时发生错误：", e);
+            System.exit(-1);
+        }
+    }
 
     protected static ServiceRegistry serviceRegistry = ExtensionLoader.getExtensionLoader(ServiceRegistry.class).getExtension("Nacos");
     protected static ServiceProvider serviceProvider = SingletonFactory.getInstance(ServiceProviderImpl.class);
@@ -29,21 +50,21 @@ public abstract class AbstractRpcServer implements RpcServer {
     /**
      * 若启动类使用了{@code @SrpcServiceScan}注解，则将自动调用本方法扫描基包下所有注解{@code @SrpcService}标识的服务并注册
      */
-    public void scanServices() {
+    public void scanServices(int port) {
         String mainClassName = ReflectUtil.getStackTrace();
         Class<?> startClass;
         // 判断启动类是否注解@SrpcServiceScan以启用服务扫描
         try {
             startClass = Class.forName(mainClassName);
             if (!startClass.isAnnotationPresent(SrpcServiceScan.class)) {
-                logger.info("启动类无@srpcServiceScan注解");
+                log.info("启动类无@srpcServiceScan注解");
                 return;
             }
         } catch (ClassNotFoundException e) {
-            logger.error("无法找到启动类");
+            log.error("无法找到启动类");
             throw new RpcException(RpcError.CLASS_NOT_FOUND);
         }
-        logger.info("启动类有@srpcServiceScan注解");
+        log.info("启动类有@srpcServiceScan注解");
         String basePackage = startClass.getAnnotation(SrpcServiceScan.class).basePackage();
         // 若@SrpcServiceScan注解未定义basePackage属性，则默认将启动类所在包设为basePackage
         if ("".equals(basePackage)) {
@@ -58,7 +79,7 @@ public abstract class AbstractRpcServer implements RpcServer {
                 try {
                     obj = clazz.newInstance();
                 } catch (InstantiationException | IllegalAccessException e) {
-                    logger.error("创建" + clazz + "时发生错误，跳过注册");
+                    log.error("创建" + clazz + "时发生错误，跳过注册");
                     continue;
                 }
                 // 从@SrpcService注解中获取服务名称、版本号、分组等信息
@@ -93,11 +114,11 @@ public abstract class AbstractRpcServer implements RpcServer {
     public <T> void regService(T service, RpcServiceProperties serviceProperties) {
         try {
             serviceProvider.addServiceProvider(service, serviceProperties);
-            serviceRegistry.register(serviceProperties.toRpcServiceFullName(), new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), PORT));
+            serviceRegistry.register(serviceProperties.toRpcServiceFullName(), new InetSocketAddress(InetAddress.getLocalHost().getHostAddress(), port));
         } catch (RpcException e) {
-            logger.error("sRPC {}服务注册发生错误：{}", serviceProperties.toRpcServiceFullName(), e.getMessage());
+            log.error("sRPC {}服务注册发生错误：{}", serviceProperties.toRpcServiceFullName(), e.getMessage());
         } catch (UnknownHostException e) {
-            logger.error("无法解析Host地址，服务注册失败：{}", e.getMessage());
+            log.error("无法解析Host地址，服务注册失败：{}", e.getMessage());
             throw new RuntimeException(e);
         }
     }

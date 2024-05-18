@@ -49,5 +49,7 @@ public class TestNettyClient {
         serviceProperties.setVersion("1.0");
         System.out.println(serviceB.bye());
         System.out.println(serviceC.hello());
+
+        client.shutdown();
     }
 }

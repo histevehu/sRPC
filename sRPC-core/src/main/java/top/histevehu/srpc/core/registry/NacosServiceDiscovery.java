@@ -4,11 +4,14 @@ import com.alibaba.nacos.api.exception.NacosException;
 import com.alibaba.nacos.api.naming.pojo.Instance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import top.histevehu.srpc.common.entity.RpcRequest;
+import top.histevehu.srpc.common.entity.RpcServiceProperties;
+import top.histevehu.srpc.common.enumeration.LoadBalanceType;
 import top.histevehu.srpc.common.enumeration.RpcError;
 import top.histevehu.srpc.common.exception.RpcException;
+import top.histevehu.srpc.common.extension.ExtensionLoader;
 import top.histevehu.srpc.common.util.NacosUtil;
-import top.histevehu.srpc.core.loadbalancer.LoadBalancer;
-import top.histevehu.srpc.core.loadbalancer.RoundRobinLoadBalancer;
+import top.histevehu.srpc.core.loadbalance.LoadBalance;
 
 import java.net.InetSocketAddress;
 import java.util.List;
@@ -20,26 +23,23 @@ public class NacosServiceDiscovery implements ServiceDiscovery {
 
     private static final Logger logger = LoggerFactory.getLogger(NacosServiceDiscovery.class);
 
-    private LoadBalancer loadBalancer;
+    private LoadBalance loadBalance;
 
     public NacosServiceDiscovery() {
-        this(new RoundRobinLoadBalancer());
-    }
-
-    public NacosServiceDiscovery(LoadBalancer loadBalancer) {
-        if (loadBalancer == null) this.loadBalancer = new RoundRobinLoadBalancer();
-        else this.loadBalancer = loadBalancer;
+        this.loadBalance = ExtensionLoader.getExtensionLoader(LoadBalance.class).getExtension(LoadBalance.LBs[LoadBalanceType.ROUND_ROBIN.getCode()]);
     }
 
     @Override
-    public InetSocketAddress lookupService(String serviceFullName) {
+    public InetSocketAddress lookupService(RpcRequest rpcRequest) {
         try {
+            String serviceFullName = RpcServiceProperties.builder().serviceName(rpcRequest.getInterfaceName())
+                    .group(rpcRequest.getGroup()).version(rpcRequest.getVersion()).build().toRpcServiceFullName();
             List<Instance> instances = NacosUtil.getAllInstance(serviceFullName);
             if (instances.isEmpty()) {
                 logger.error("找不到对应的服务: {}", serviceFullName);
                 throw new RpcException(RpcError.SERVICE_NOT_FOUND);
             }
-            Instance instance = loadBalancer.select(instances);
+            Instance instance = loadBalance.select(instances, rpcRequest);
             return new InetSocketAddress(instance.getIp(), instance.getPort());
         } catch (NacosException e) {
             logger.error("获取服务时有错误发生:", e);
@@ -48,7 +48,7 @@ public class NacosServiceDiscovery implements ServiceDiscovery {
     }
 
     @Override
-    public void setLoadbalance(LoadBalancer lb) {
-        this.loadBalancer = lb;
+    public void setLoadbalance(LoadBalance lb) {
+        this.loadBalance = lb;
     }
 }
