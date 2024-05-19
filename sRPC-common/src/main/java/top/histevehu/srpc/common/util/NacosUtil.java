@@ -27,6 +27,7 @@ public class NacosUtil {
     private static InetSocketAddress address;
 
     static {
+        System.setProperty("nacos.logging.default.config.enabled", "false");
         namingService = getNacosNamingService();
     }
 
