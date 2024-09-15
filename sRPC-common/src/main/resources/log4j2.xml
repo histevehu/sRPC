@@ -10,7 +10,7 @@
         <Logger name="top.histevehu.srpc" level="WARN" additivity="false">
             <AppenderRef ref="LogToConsole"/>
         </Logger>
-        <Root level="WARN">
+        <Root level="INFO">
             <AppenderRef ref="LogToConsole"/>
         </Root>
     </Loggers>

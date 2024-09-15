@@ -1,6 +1,6 @@
 # sRPC
 
-![Static Badge](https://img.shields.io/badge/license-MIT-green) ![Static Badge](https://img.shields.io/badge/OpenJDK-21-blue) [![Build Status](https://app.travis-ci.com/histevehu/sRPC.svg?token=fsyLx7wqz3Fwpzu63a5T&branch=main)](https://app.travis-ci.com/histevehu/sRPC) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
+![Static Badge](https://img.shields.io/badge/license-MIT-green) [![Build Status](https://app.travis-ci.com/histevehu/sRPC.svg?token=fsyLx7wqz3Fwpzu63a5T&branch=main)](https://app.travis-ci.com/histevehu/sRPC) [![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg?style=flat-square)](https://makeapullrequest.com)
 
 ## 特性
 
@@ -73,6 +73,7 @@ public interface HelloService {
 ```
 
 ```java
+
 @SrpcService
 public class HelloServiceImpl implements HelloService {
     @Override
@@ -103,6 +104,7 @@ public class TestNettyServer {
 ##### 注解注册
 
 ```java
+
 @SrpcServiceScan
 public class TestNettyServer {
     public static void main(String[] args) {
@@ -115,6 +117,7 @@ public class TestNettyServer {
 此外，sRPC支持集成Spring，因此还可通过以下方式启用服务的扫描注册：
 
 ```java
+
 @SrpcServiceScanSpring
 public class TestNettySpringServer {
     public static void main(String[] args) {
@@ -148,6 +151,7 @@ public class TestNettyClient {
 这种方式需要使用Spring Framework：
 
 ```java
+
 @SrpcServiceScanSpring
 public class TestReferenceClient {
     public static void main(String[] args) {
@@ -161,6 +165,7 @@ public class TestReferenceClient {
 然后在需要自动注入的服务上加上 `@SrpcReference` 注解即可：
 
 ```java
+
 @Component
 public class ServiceAController {
     @SrpcReference

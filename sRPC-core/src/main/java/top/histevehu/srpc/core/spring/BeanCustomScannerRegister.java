@@ -11,7 +11,7 @@ import org.springframework.core.type.AnnotationMetadata;
 import org.springframework.core.type.StandardAnnotationMetadata;
 import org.springframework.stereotype.Component;
 import top.histevehu.srpc.core.annotation.SrpcService;
-import top.histevehu.srpc.core.annotation.SrpcServiceScan;
+import top.histevehu.srpc.core.annotation.SrpcServiceScanSpring;
 
 /**
  * 扫描和过滤指定的注解
@@ -29,8 +29,8 @@ public class BeanCustomScannerRegister implements ImportBeanDefinitionRegistrar,
 
     @Override
     public void registerBeanDefinitions(AnnotationMetadata annotationMetadata, BeanDefinitionRegistry beanDefinitionRegistry) {
-        // 获取@SrpcServiceScan注解的属性和值
-        AnnotationAttributes rpcScanAnnotationAttributes = AnnotationAttributes.fromMap(annotationMetadata.getAnnotationAttributes(SrpcServiceScan.class.getName()));
+        // 获取@SrpcServiceScanSpring注解的属性和值
+        AnnotationAttributes rpcScanAnnotationAttributes = AnnotationAttributes.fromMap(annotationMetadata.getAnnotationAttributes(SrpcServiceScanSpring.class.getName()));
         String rpcScanBasePackages = "";
         if (rpcScanAnnotationAttributes != null) {
             // get the value of the basePackage property
@@ -50,9 +50,8 @@ public class BeanCustomScannerRegister implements ImportBeanDefinitionRegistrar,
         log.info("springBeanScanner扫描的数量 [{}]", springBeanAmount);
         int scanCount = rpcServiceScanner.scan(rpcScanBasePackages);
         log.info("rpcServiceScanner扫描的数量 [{}]", scanCount);
-
-        beanDefinitionRegistry.registerBeanDefinition(ReferenceAnnotationBeanPostProcessor.BEAN_NAME,
-                new RootBeanDefinition(ReferenceAnnotationBeanPostProcessor.class));
+        // 注册 ReferenceAnnotationBeanPostProcessor 到 Spring 容器
+        beanDefinitionRegistry.registerBeanDefinition(ReferenceAnnotationBeanPostProcessor.BEAN_NAME, new RootBeanDefinition(ReferenceAnnotationBeanPostProcessor.class));
     }
 
 }

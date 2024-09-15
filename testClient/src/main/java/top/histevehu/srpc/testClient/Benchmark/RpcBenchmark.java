@@ -15,10 +15,11 @@ public class RpcBenchmark {
 
     private MathAddService mathAddService;
 
+    RpcClient client = new NettyClient();
+    RpcClientProxy clientProxy = new RpcClientProxy(client);
+
     @Setup
     public void setup() {
-        RpcClient client = new NettyClient();
-        RpcClientProxy clientProxy = new RpcClientProxy(client);
         mathAddService = clientProxy.getProxy(MathAddService.class);
     }
 
@@ -26,5 +27,10 @@ public class RpcBenchmark {
     public void testRpcCall() {
         int res = mathAddService.add(1, 1);
         assert res == 2;
+    }
+
+    @TearDown
+    public void tearDown() {
+        client.shutdown();
     }
 }

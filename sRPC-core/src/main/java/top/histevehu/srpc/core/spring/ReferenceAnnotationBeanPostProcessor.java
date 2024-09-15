@@ -30,6 +30,9 @@ import java.lang.reflect.Modifier;
 import java.util.*;
 import java.util.concurrent.ConcurrentHashMap;
 
+/**
+ * 自定义Bean后处理器，处理带有@SrpcReference注解的字段
+ */
 @Slf4j
 public class ReferenceAnnotationBeanPostProcessor implements
         MergedBeanDefinitionPostProcessor, ApplicationContextAware, InstantiationAwareBeanPostProcessor {
@@ -64,8 +67,17 @@ public class ReferenceAnnotationBeanPostProcessor implements
         metadata.checkConfigMembers(beanDefinition);
     }
 
+    /**
+     * 查找需要注入的的字段元数据。
+     *
+     * @param beanName Bean的名称
+     * @param clazz    Bean的类型
+     * @param pvs      Bean的属性值
+     * @return 注入元数据
+     */
     private InjectionMetadata findAutowiringMetadata(String beanName, Class<?> clazz, PropertyValues pvs) {
-        // Fall back to class name as cache key, for backwards compatibility with custom callers.
+        // Fall back to class name as cache key, for backwards compatibility with custom
+        // callers.
         String cacheKey = (StringUtils.hasLength(beanName) ? beanName : clazz.getName());
         // Quick check on the concurrent map first, with minimal locking.
         InjectionMetadata metadata = this.injectionMetadataCache.get(cacheKey);
@@ -84,6 +96,12 @@ public class ReferenceAnnotationBeanPostProcessor implements
         return metadata;
     }
 
+    /**
+     * 构建自动注入的元数据。
+     *
+     * @param clazz 目标类
+     * @return 注入元数据
+     */
     private InjectionMetadata buildAutowiringMetadata(final Class<?> clazz) {
 
         List<InjectionMetadata.InjectedElement> elements = new ArrayList<>();
@@ -101,7 +119,8 @@ public class ReferenceAnnotationBeanPostProcessor implements
                         }
                         return;
                     }
-                    AnnotationAttributes annotationAttributes = ann.asMap(mergedAnnotation -> new AnnotationAttributes(mergedAnnotation.getType()));
+                    AnnotationAttributes annotationAttributes = ann
+                            .asMap(mergedAnnotation -> new AnnotationAttributes(mergedAnnotation.getType()));
                     String version = annotationAttributes.getString(this.ATTRIBUTE_VERSION);
                     String group = annotationAttributes.getString(this.ATTRIBUTE_GROUP);
                     String name = annotationAttributes.getString(this.ATTRIBUTE_NAME);
@@ -111,12 +130,17 @@ public class ReferenceAnnotationBeanPostProcessor implements
 
             elements.addAll(0, currElements);
             targetClass = targetClass.getSuperclass();
-        }
-        while (targetClass != null && targetClass != Object.class);
+        } while (targetClass != null && targetClass != Object.class);
 
         return InjectionMetadata.forElements(elements, clazz);
     }
 
+    /**
+     * 查找字段上的@SrpcReference注解。
+     *
+     * @param ao 可访问的对象（字段或方法）
+     * @return 合并的注解
+     */
     @Nullable
     private MergedAnnotation<?> findReferenceAnnotation(AccessibleObject ao) {
         MergedAnnotations annotations = MergedAnnotations.from(ao);
@@ -130,7 +154,8 @@ public class ReferenceAnnotationBeanPostProcessor implements
     }
 
     @Override
-    public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName) throws BeansException {
+    public PropertyValues postProcessProperties(PropertyValues pvs, Object bean, String beanName)
+            throws BeansException {
         InjectionMetadata metadata = findAutowiringMetadata(beanName, bean.getClass(), pvs);
         try {
             metadata.inject(bean, beanName, pvs);
@@ -142,6 +167,9 @@ public class ReferenceAnnotationBeanPostProcessor implements
         return pvs;
     }
 
+    /**
+     * 带有 {@code @SrpcReference} 注解的字段
+     */
     private class ReferenceFieldElement extends InjectionMetadata.InjectedElement {
 
         private String group;
@@ -155,12 +183,22 @@ public class ReferenceAnnotationBeanPostProcessor implements
             this.group = group;
         }
 
+        /**
+         * 注入服务实现
+         *
+         * @param target             目标对象
+         * @param requestingBeanName 请求的Bean名称
+         * @param pvs                属性值
+         * @throws Throwable 如果注入失败
+         */
         @Override
         protected void inject(Object target, String requestingBeanName, PropertyValues pvs) throws Throwable {
             Field field = (Field) this.member;
             RpcServiceProperties rpcServiceProperties = new RpcServiceProperties();
-            if (group != null && !group.isEmpty()) rpcServiceProperties.setGroup(group);
-            if (version != null && !version.isEmpty()) rpcServiceProperties.setVersion(version);
+            if (group != null && !group.isEmpty())
+                rpcServiceProperties.setGroup(group);
+            if (version != null && !version.isEmpty())
+                rpcServiceProperties.setVersion(version);
             if (name != null && !name.isEmpty()) {
                 rpcServiceProperties.setServiceName(name);
             } else {
